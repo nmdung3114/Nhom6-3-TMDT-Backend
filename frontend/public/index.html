@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ELearnVN - Nền tảng học trực tuyến hàng đầu Việt Nam. Khóa học lập trình, AI, thiết kế, kinh doanh">
+  <title>ELearnVN - Học Online Không Giới Hạn</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/pages/home.css">
+</head>
+<body>
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Navbar -->
+  <nav id="navbar" class="navbar">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__brand">
+        <div class="navbar__brand-icon">🎓</div>
+        <span class="navbar__brand-text">ELearnVN</span>
+      </a>
+      <div class="navbar__search">
+        <span class="navbar__search-icon">🔍</span>
+        <input id="search-input" type="text" class="navbar__search-input" placeholder="Tìm kiếm khóa học, ebook...">
+        <button id="voice-search-btn" class="navbar__search-mic" title="Tìm kiếm bằng giọng nói" aria-label="Tìm kiếm bằng giọng nói">
+          🎤
+        </button>
+      </div>
+      <nav class="navbar__nav">
+        <a href="/products/list.html" class="navbar__nav-link">📚 <span>Khóa học</span></a>
+        <a href="/products/list.html?type=ebook" class="navbar__nav-link">📖 <span>Ebook</span></a>
+        <!-- Auth: shown when logged out -->
+        <div id="nav-auth">
+          <a href="/auth/login.html" class="btn btn-sm btn-secondary">Đăng nhập</a>
+          <a href="/auth/register.html" class="btn btn-sm btn-primary" style="margin-left:8px">Đăng ký</a>
+        </div>
+        <!-- User: shown when logged in -->
+        <div id="nav-user" style="display:none; align-items:center; gap:12px">
+          <a href="/cart/index.html" id="nav-cart-btn" class="navbar__cart-btn">
+            🛒 <span id="cart-badge" class="cart-badge" style="display:none">0</span>
+          </a>
+          <div class="navbar__user">
+            <button id="user-menu-btn" class="navbar__user-btn">
+              <div id="nav-avatar" class="navbar__avatar">U</div>
+              <span id="nav-user-name" class="navbar__user-name">User</span>
+              <span>▾</span>
+            </button>
+            <div id="user-dropdown" class="dropdown-menu">
+              <a href="/profile/index.html" class="dropdown-item">👤 Hồ sơ của tôi</a>
+              <a href="/profile/index.html#my-courses" class="dropdown-item">🎓 Khóa học của tôi</a>
+              <a href="/orders/index.html" class="dropdown-item">📦 Đơn hàng</a>
+              <div id="admin-dropdown-item" class="dropdown-item" style="display:none" onclick="location.href='/admin/dashboard.html'">⚙️ Quản trị</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item danger" onclick="app.logout()">🚪 Đăng xuất</div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container hero__grid">
+      <div class="hero__content">
+        <div class="hero__eyebrow">⚡ Nền tảng học #1 Việt Nam</div>
+        <h1 class="hero__title">
+          Học <span class="text-gradient">không giới hạn</span>,<br>
+          Thành công <span class="text-gradient">vượt trội</span>
+        </h1>
+        <p class="hero__desc">
+          Khám phá hàng trăm khóa học chất lượng cao từ các chuyên gia hàng đầu.
+          Học lúc nào, ở đâu cũng được — theo đúng tốc độ của bạn.
+        </p>
+        <div class="hero__actions">
+          <a href="/products/list.html" class="btn btn-primary btn-xl">🚀 Khám phá ngay</a>
+          <a href="/auth/register.html" class="btn btn-outline btn-xl">Bắt đầu miễn phí</a>
+        </div>
+        <div class="hero__stats">
+          <div class="hero__stat">
+            <div class="hero__stat-value text-gradient">50K+</div>
+            <div class="hero__stat-label">Học viên</div>
+          </div>
+          <div class="hero__stat">
+            <div class="hero__stat-value text-gradient">200+</div>
+            <div class="hero__stat-label">Khóa học</div>
+          </div>
+          <div class="hero__stat">
+            <div class="hero__stat-value text-gradient">98%</div>
+            <div class="hero__stat-label">Hài lòng</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero__visual">
+        <div class="hero__float-card">
+          <div class="float-card__icon">💻</div>
+          <div class="float-card__title">Fullstack Web Development</div>
+          <div class="float-card__author">by Nguyễn Văn A</div>
+          <div class="float-card__progress">
+            <div class="float-card__progress-fill" style="width:65%"></div>
+          </div>
+          <div style="font-size:0.73rem;color:#64748b;margin-top:8px">65% hoàn thành</div>
+        </div>
+        <div class="hero__float-card">
+          <div class="float-card__icon">🤖</div>
+          <div class="float-card__title">Machine Learning cơ bản</div>
+          <div style="display:flex;gap:4px;margin-top:auto">
+            <span style="font-size:0.75rem;color:#f59e0b">★★★★★</span>
+            <span style="font-size:0.73rem;color:#64748b">4.9 (412)</span>
+          </div>
+        </div>
+        <div class="hero__float-card">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="float-card__icon" style="margin:0">🎉</div>
+            <div>
+              <div style="font-size:0.82rem;font-weight:700">Chứng chỉ hoàn thành</div>
+              <div style="font-size:0.72rem;color:#64748b">React & FastAPI</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="categories section">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:48px">
+        <h2 class="section-title">Khám phá theo danh mục</h2>
+        <p class="section-subtitle">Từ lập trình đến kinh doanh — tất cả đều có tại đây</p>
+      </div>
+      <div id="categories-grid" class="categories__grid">
+        <!-- Loaded dynamically -->
+        <div class="category-chip" onclick="location.href='/products/list.html?category=1'">
+          <span class="category-chip__icon">💻</span>
+          <span class="category-chip__name">Lập trình Web</span>
+        </div>
+        <div class="category-chip" onclick="location.href='/products/list.html?category=2'">
+          <span class="category-chip__icon">🤖</span>
+          <span class="category-chip__name">Data Science & AI</span>
+        </div>
+        <div class="category-chip" onclick="location.href='/products/list.html?category=3'">
+          <span class="category-chip__icon">📱</span>
+          <span class="category-chip__name">Mobile Dev</span>
+        </div>
+        <div class="category-chip" onclick="location.href='/products/list.html?category=4'">
+          <span class="category-chip__icon">🎨</span>
+          <span class="category-chip__name">UI/UX Design</span>
+        </div>
+        <div class="category-chip" onclick="location.href='/products/list.html?category=5'">
+          <span class="category-chip__icon">📈</span>
+          <span class="category-chip__name">Business</span>
+        </div>
+        <div class="category-chip" onclick="location.href='/products/list.html?category=6'">
+          <span class="category-chip__icon">☁️</span>
+          <span class="category-chip__name">DevOps & Cloud</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Courses -->
+  <section class="products-section section">
+    <div class="container">
+      <div class="products-header">
+        <div>
+          <h2 class="section-title">Khóa học nổi bật</h2>
+          <p style="color:var(--color-text-secondary)">Được yêu thích nhất bởi học viên</p>
+        </div>
+        <a href="/products/list.html?type=course" class="btn btn-secondary">Xem tất cả →</a>
+      </div>
+      <div id="courses-grid" class="products-grid">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Ebooks -->
+  <section class="products-section section" style="padding-top:0">
+    <div class="container">
+      <div class="products-header">
+        <div>
+          <h2 class="section-title">Ebook phổ biến</h2>
+          <p style="color:var(--color-text-secondary)">Tài liệu số chất lượng cao</p>
+        </div>
+        <a href="/products/list.html?type=ebook" class="btn btn-secondary">Xem tất cả →</a>
+      </div>
+      <div id="ebooks-grid" class="products-grid">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features section">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:64px">
+        <h2 class="section-title">Tại sao chọn ELearnVN?</h2>
+      </div>
+      <div class="features__grid">
+        <div class="feature-card">
+          <span class="feature-card__icon">🎬</span>
+          <h3 class="feature-card__title">Video chất lượng cao</h3>
+          <p class="feature-card__desc">Nội dung được stream qua Mux, hỗ trợ 1080p, tự động điều chỉnh chất lượng theo mạng.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card__icon">🔒</span>
+          <h3 class="feature-card__title">Bảo vệ nội dung</h3>
+          <p class="feature-card__desc">Nội dung được bảo vệ bằng signed URL có thời hạn — không thể chia sẻ trái phép.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card__icon">📊</span>
+          <h3 class="feature-card__title">Theo dõi tiến độ</h3>
+          <p class="feature-card__desc">Tự động lưu tiến độ học, biết bạn đang ở đâu và còn bao nhiêu bài nữa.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card__icon">💳</span>
+          <h3 class="feature-card__title">Thanh toán an toàn</h3>
+          <p class="feature-card__desc">Tích hợp VNPay sandbox — trải nghiệm thanh toán đúng như thật, bảo mật tuyệt đối.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card__icon">📱</span>
+          <h3 class="feature-card__title">Học mọi thiết bị</h3>
+          <p class="feature-card__desc">Responsive design — học trên điện thoại, máy tính bảng hay laptop đều mượt mà.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-card__icon">⚡</span>
+          <h3 class="feature-card__title">Truy cập tức thì</h3>
+          <p class="feature-card__desc">Sau khi thanh toán thành công, bạn có quyền truy cập ngay — không cần chờ xét duyệt.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section section">
+    <div class="container">
+      <div class="cta-card">
+        <h2 style="font-size:2.5rem;font-weight:900;margin-bottom:16px">Bắt đầu hành trình học tập ngay hôm nay</h2>
+        <p style="color:var(--color-text-secondary);font-size:1.1rem;margin-bottom:40px;max-width:600px;margin-left:auto;margin-right:auto">
+          Tham gia cộng đồng 50,000+ học viên đang nâng cao kỹ năng mỗi ngày
+        </p>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+          <a href="/auth/register.html" class="btn btn-primary btn-xl">🚀 Đăng ký miễn phí</a>
+          <a href="/products/list.html" class="btn btn-outline btn-xl">Xem khóa học</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="site-footer"></footer>
+
+  <!-- JS -->
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/home.js"></script>
+</body>
+</html>

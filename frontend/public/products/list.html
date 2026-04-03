@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khóa học & Ebook - ELearnVN</title>
+  <meta name="description" content="Khám phá hàng trăm khóa học và ebook chất lượng cao">
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/form.css">
+  <link rel="stylesheet" href="/css/pages/products/list.css">
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+  <nav id="navbar" class="navbar"><div class="container navbar__inner" id="navbar-inner"></div></nav>
+
+  <div class="products-page">
+    <div class="products-page__header">
+      <div class="container">
+        <h1 id="page-title">Tất cả khóa học & Ebook</h1>
+        <p style="color:var(--color-text-secondary);margin-top:8px">Chọn khóa học phù hợp và bắt đầu học ngay hôm nay</p>
+        <!-- Search on page -->
+        <div style="margin-top:24px;max-width:500px">
+          <div class="search-bar">
+            <span class="search-bar__icon">🔍</span>
+            <input id="search-input" type="text" class="form-control" placeholder="Tìm theo tên khóa học, ebook..." style="border-radius:999px;padding-left:44px">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container products-layout">
+      <!-- Filter Sidebar -->
+      <aside class="filter-sidebar">
+        <h3 class="filter-sidebar__title">🔧 Bộ lọc</h3>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Loại nội dung</div>
+          <label class="filter-option active" data-filter="type" data-value="">
+            <input type="radio" name="type" value=""> Tất cả
+            <div class="filter-dot"></div>
+          </label>
+          <label class="filter-option" data-filter="type" data-value="course">
+            <input type="radio" name="type" value="course"> 🎬 Khóa học
+            <div class="filter-dot"></div>
+          </label>
+          <label class="filter-option" data-filter="type" data-value="ebook">
+            <input type="radio" name="type" value="ebook"> 📖 Ebook
+            <div class="filter-dot"></div>
+          </label>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Danh mục</div>
+          <div id="category-filters">
+            <label class="filter-option active" data-filter="category" data-value="">
+              <input type="radio" name="category" value=""> Tất cả
+              <div class="filter-dot"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group" id="level-filter-group">
+          <div class="filter-group__label">Trình độ</div>
+          <label class="filter-option active" data-filter="level" data-value="">
+            <input type="radio" name="level" value=""> Tất cả
+            <div class="filter-dot"></div>
+          </label>
+          <label class="filter-option" data-filter="level" data-value="beginner">
+            <input type="radio" name="level" value="beginner"> 🟢 Cơ bản
+            <div class="filter-dot"></div>
+          </label>
+          <label class="filter-option" data-filter="level" data-value="intermediate">
+            <input type="radio" name="level" value="intermediate"> 🟡 Trung cấp
+            <div class="filter-dot"></div>
+          </label>
+          <label class="filter-option" data-filter="level" data-value="advanced">
+            <input type="radio" name="level" value="advanced"> 🔴 Nâng cao
+            <div class="filter-dot"></div>
+          </label>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Khoảng giá (VNĐ)</div>
+          <div class="price-range">
+            <input type="number" id="min-price" class="form-control" placeholder="Từ" min="0" step="50000">
+            <input type="number" id="max-price" class="form-control" placeholder="Đến" min="0" step="50000">
+          </div>
+          <button class="btn btn-secondary btn-sm" style="width:100%;margin-top:8px" onclick="productsPage.applyFilters()">Áp dụng giá</button>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;color:var(--color-text-muted)" onclick="productsPage.resetFilters()">↺ Xóa bộ lọc</button>
+      </aside>
+
+      <!-- Products Area -->
+      <div>
+        <div class="products-toolbar">
+          <span class="products-toolbar__count" id="products-count">Đang tải...</span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <label style="font-size:0.85rem;color:var(--color-text-secondary)">Sắp xếp:</label>
+            <select id="sort-select" class="sort-select" onchange="productsPage.applySort(this.value)">
+              <option value="newest">Mới nhất</option>
+              <option value="price_asc">Giá thấp → cao</option>
+              <option value="price_desc">Giá cao → thấp</option>
+              <option value="rating">Đánh giá cao</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="products-grid" class="products-grid-list">
+          <div class="loading-overlay" style="grid-column:1/-1"><div class="spinner"></div></div>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" id="site-footer"></footer>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/products-list.js"></script>
+</body>
+</html>

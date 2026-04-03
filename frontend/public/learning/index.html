@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Học ngay - ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+  <style>
+    body { background: #05051a; overflow-x: hidden; }
+    /* Compact nav for learning page */
+    .learn-nav {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--nav-height);
+      background: rgba(5,5,26,0.98); border-bottom: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; z-index: 100;
+    }
+    .learn-nav__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.95rem; }
+    .learn-nav__title { color: var(--color-text-secondary); font-size: 0.875rem; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .learn-nav__actions { display: flex; align-items: center; gap: 12px; }
+  </style>
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Learning-specific compact nav -->
+  <nav class="learn-nav">
+    <div style="display:flex;align-items:center;gap:24px">
+      <a href="/" class="learn-nav__brand">
+        <div style="width:30px;height:30px;background:var(--gradient-primary);border-radius:6px;display:flex;align-items:center;justify-content:center">🎓</div>
+        <span style="background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent">ELearnVN</span>
+      </a>
+      <div class="learn-nav__title" id="course-title">Đang tải...</div>
+    </div>
+    <div class="learn-nav__actions">
+      <div id="progress-text" style="font-size:0.8rem;color:var(--color-text-muted)"></div>
+      <a href="/profile/index.html#my-courses" class="btn btn-secondary btn-sm">← Khóa học của tôi</a>
+    </div>
+  </nav>
+
+  <!-- Learning layout -->
+  <div class="learning-page">
+    <div class="learning-layout" style="margin-top:var(--nav-height)">
+      <!-- Sidebar -->
+      <aside class="learning-sidebar">
+        <div class="learning-sidebar__header">
+          <div class="learning-sidebar__title">Nội dung khóa học</div>
+          <div class="learning-progress-bar">
+            <div class="learning-progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div id="sidebar-content">
+          <div class="loading-overlay"><div class="spinner"></div></div>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="learning-main">
+        <!-- Video player -->
+        <div class="video-player-wrap" id="video-player-wrap" style="background:black;aspect-ratio:16/9;max-height:60vh">
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--color-text-muted);flex-direction:column;gap:12px">
+            <div style="font-size:3rem">▶</div>
+            <div>Chọn bài học để bắt đầu</div>
+          </div>
+        </div>
+
+        <!-- Lesson info -->
+        <div class="learning-content">
+          <h2 class="learning-content__title" id="lesson-title">Chọn một bài học từ danh sách bên trái</h2>
+          <div class="learning-nav">
+            <button id="btn-prev" class="btn btn-secondary" disabled>← Bài trước</button>
+            <button id="btn-next" class="btn btn-primary" disabled>Bài tiếp theo →</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- AI Tutor Widget -->
+  <div class="ai-tutor-widget">
+    <button id="ai-tutor-btn" class="ai-tutor-btn" title="Hỏi AI Tutor">
+      ✨ Trợ lý AI
+    </button>
+    <div id="ai-tutor-window" class="ai-tutor-window">
+      <div class="ai-tutor-header">
+        <div class="ai-tutor-title">✨ AI Tutor</div>
+        <button id="ai-tutor-close" class="ai-tutor-close">✕</button>
+      </div>
+      <div id="ai-tutor-messages" class="ai-tutor-messages">
+        <div class="message assistant">Chào bạn, mình là AI Tutor. Mình có thể giúp gì cho bạn trong bài học này?</div>
+      </div>
+      <div class="ai-tutor-input-area">
+        <input type="text" id="ai-tutor-input" placeholder="Hỏi AI...">
+        <button id="ai-tutor-send">Gửi</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/learning-page.js"></script>
+</body>
+</html>

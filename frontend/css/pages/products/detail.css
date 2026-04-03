@@ -1,0 +1,89 @@
+/* Product detail page */
+.product-detail { padding-top: var(--nav-height); }
+.product-hero {
+  background: linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 100%);
+  padding: var(--space-12) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.product-hero__layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-10);
+  align-items: start;
+}
+.product-hero__thumb {
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.product-hero__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.product-hero__breadcrumb { display: flex; align-items: center; gap: var(--space-2); font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: var(--space-4); }
+.product-hero__type { margin-bottom: var(--space-4); }
+.product-hero__title { font-size: 2rem; font-weight: 800; line-height: 1.3; margin-bottom: var(--space-4); }
+.product-hero__meta { display: flex; flex-wrap: wrap; gap: var(--space-5); margin-bottom: var(--space-5); font-size: 0.875rem; color: var(--color-text-secondary); }
+.product-hero__author { display: flex; align-items: center; gap: var(--space-2); }
+.product-hero__desc { color: var(--color-text-secondary); line-height: 1.7; margin-bottom: var(--space-6); }
+/* Purchase box */
+.purchase-box {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  position: sticky;
+  top: calc(var(--nav-height) + 24px);
+}
+.purchase-box__price-block { margin-bottom: var(--space-6); }
+.purchase-box__price { font-size: 2.5rem; font-weight: 800; color: white; }
+.purchase-box__original { font-size: 1rem; color: var(--color-text-muted); text-decoration: line-through; margin-left: var(--space-3); }
+.purchase-box__discount { font-size: 0.85rem; }
+.purchase-box__features { margin-bottom: var(--space-6); display: flex; flex-direction: column; gap: var(--space-3); }
+.purchase-feature { display: flex; align-items: center; gap: var(--space-3); font-size: 0.875rem; color: var(--color-text-secondary); }
+.purchase-feature__icon { color: var(--color-success); }
+/* Tabs */
+.product-tabs { border-bottom: 1px solid var(--color-border); display: flex; gap: 0; }
+.tab-btn {
+  padding: var(--space-4) var(--space-6);
+  font-size: 0.9rem; font-weight: 600;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.tab-btn.active { color: var(--color-accent-light); border-bottom-color: var(--color-accent); }
+.tab-btn:hover { color: var(--color-text-primary); }
+.tab-content { display: none; padding: var(--space-8) 0; }
+.tab-content.active { display: block; }
+/* Curriculum */
+.module-accordion {}
+.module-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  margin-bottom: var(--space-2);
+  transition: var(--transition-fast);
+}
+.module-header:hover { border-color: var(--color-border-accent); }
+.module-title { font-weight: 600; font-size: 0.95rem; }
+.module-meta { font-size: 0.8rem; color: var(--color-text-muted); }
+.lesson-list { padding-left: var(--space-4); display: none; margin-bottom: var(--space-3); }
+.lesson-list.open { display: flex; flex-direction: column; gap: var(--space-2); }
+.lesson-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  transition: var(--transition-fast);
+  cursor: default;
+}
+.lesson-item:hover { background: var(--color-bg-glass); }
+.lesson-item.preview { cursor: pointer; }
+.lesson-item.preview:hover { color: var(--color-accent-light); }
+.lesson-icon { color: var(--color-text-muted); font-size: 0.85rem; }
+.lesson-preview-badge { margin-left: auto; }
+
+@media (max-width: 900px) { .product-hero__layout { grid-template-columns: 1fr; } .purchase-box { position: static; } }

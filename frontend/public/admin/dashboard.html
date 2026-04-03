@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+</head>
+<body data-page="dashboard">
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Admin Navbar -->
+  <nav class="navbar" id="navbar" style="z-index:200">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__brand">
+        <div class="navbar__brand-icon">🎓</div>
+        <span class="navbar__brand-text">ELearnVN</span>
+        <span style="font-size:0.7rem;background:var(--color-error-bg);color:var(--color-error);padding:2px 8px;border-radius:4px;margin-left:4px;font-weight:700">ADMIN</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:12px">
+        <a href="/" class="btn btn-ghost btn-sm">🏠 Xem trang web</a>
+        <button class="btn btn-secondary btn-sm" onclick="app.logout()">🚪 Đăng xuất</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="admin-page">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar__section-title">Tổng quan</div>
+      <a href="/admin/dashboard.html" class="admin-nav-item active"><span class="admin-icon">📊</span> Dashboard</a>
+
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Quản lý</div>
+      <a href="/admin/users.html" class="admin-nav-item"><span class="admin-icon">👥</span> Người dùng</a>
+      <a href="/admin/products.html" class="admin-nav-item"><span class="admin-icon">📚</span> Sản phẩm</a>
+      <a href="/admin/orders.html" class="admin-nav-item"><span class="admin-icon">📦</span> Đơn hàng</a>
+
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Hệ thống</div>
+      <a href="/api/docs" target="_blank" class="admin-nav-item"><span class="admin-icon">📖</span> API Docs</a>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">📊 Dashboard</h1>
+        <p class="admin-header__subtitle">Tổng quan hệ thống ELearnVN</p>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="admin-stats">
+        <div class="stat-card">
+          <div class="stat-card__header">
+            <div><div class="stat-card__value" id="stat-users">--</div><div class="stat-card__label">Tổng người dùng</div></div>
+            <div class="stat-card__icon" style="background:rgba(99,102,241,0.15)">👥</div>
+          </div>
+          <div class="stat-card__change change-up">▲ <span id="stat-new-users">0</span> mới hôm nay</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__header">
+            <div><div class="stat-card__value" id="stat-products">--</div><div class="stat-card__label">Sản phẩm</div></div>
+            <div class="stat-card__icon" style="background:rgba(168,85,247,0.15)">📚</div>
+          </div>
+          <div class="stat-card__change" style="color:var(--color-text-muted)">Khóa học & Ebook</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__header">
+            <div><div class="stat-card__value" id="stat-orders">--</div><div class="stat-card__label">Tổng đơn hàng</div></div>
+            <div class="stat-card__icon" style="background:rgba(245,158,11,0.15)">📦</div>
+          </div>
+          <div class="stat-card__change">
+            <span style="color:var(--color-warning)">⏳ <span id="stat-pending">0</span> chờ TT</span>
+            <span style="margin-left:8px;color:var(--color-success)">✅ <span id="stat-paid">0</span> thành công</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__header">
+            <div><div class="stat-card__value text-gradient" id="stat-revenue" style="font-size:1.4rem">--</div><div class="stat-card__label">Doanh thu tổng</div></div>
+            <div class="stat-card__icon" style="background:rgba(34,197,94,0.15)">💰</div>
+          </div>
+          <div class="stat-card__change change-up">Hôm nay: <span id="stat-revenue-today">--</span></div>
+        </div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="admin-grid-2">
+        <div class="chart-card">
+          <div class="chart-card__title">⚡ Thao tác nhanh</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <a href="/admin/products.html" class="btn btn-secondary" style="justify-content:flex-start;gap:12px">
+              📚 Quản lý sản phẩm
+            </a>
+            <a href="/admin/orders.html" class="btn btn-secondary" style="justify-content:flex-start;gap:12px">
+              📦 Xem đơn hàng mới
+            </a>
+            <a href="/admin/users.html" class="btn btn-secondary" style="justify-content:flex-start;gap:12px">
+              👥 Quản lý người dùng
+            </a>
+            <button class="btn btn-secondary" style="justify-content:flex-start;gap:12px" onclick="showCreateCouponModal()">
+              🏷 Tạo mã giảm giá
+            </button>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card__title">📋 Hướng dẫn vận hành</div>
+          <div style="color:var(--color-text-secondary);font-size:0.875rem;line-height:1.8">
+            <p>1. <strong style="color:white">Tạo sản phẩm</strong> → Vào Sản phẩm → Thêm mới</p>
+            <p>2. <strong style="color:white">Upload video</strong> → Dùng Mux Dashboard, điền playback_id vào lesson</p>
+            <p>3. <strong style="color:white">Quản lý đơn</strong> → Refund nếu cần thiết</p>
+            <p>4. <strong style="color:white">API Docs</strong> → <a href="/api/docs" target="_blank" style="color:var(--color-accent-light)">Swagger UI</a></p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/admin-page.js"></script>
+  <script>
+    function showCreateCouponModal() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal">
+        <div class="modal__header">
+          <div class="modal__title">🏷 Tạo mã giảm giá</div>
+          <div class="modal__close" onclick="this.closest('.modal-overlay').remove()">✕</div>
+        </div>
+        <form id="coupon-form">
+          <div class="form-group"><label class="form-label">Mã coupon</label><input class="form-control" name="code" placeholder="VD: SUMMER30" style="text-transform:uppercase" required></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="form-group"><label class="form-label">Loại giảm</label>
+              <select class="form-control" name="discount_type">
+                <option value="fixed">Cố định (đ)</option>
+                <option value="percent">Phần trăm (%)</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Mức giảm</label>
+              <input type="number" class="form-control" name="discount" min="0" required></div>
+          </div>
+          <div class="form-group"><label class="form-label">Đơn tối thiểu (đ)</label>
+            <input type="number" class="form-control" name="min_order_amount" value="0" min="0"></div>
+          <div class="form-group"><label class="form-label">Giới hạn sử dụng</label>
+            <input type="number" class="form-control" name="usage_limit" placeholder="Để trống = không giới hạn"></div>
+          <button type="submit" class="btn btn-primary btn-block">Tạo mã giảm giá</button>
+        </form>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('coupon-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        const { api } = await import('/js/api/client.js');
+        const q = new URLSearchParams({
+          code: data.code.toUpperCase(),
+          discount: data.discount,
+          discount_type: data.discount_type,
+          min_order_amount: data.min_order_amount || 0,
+          ...(data.usage_limit ? { usage_limit: data.usage_limit } : {}),
+        });
+        try {
+          await api.post(`/admin/coupons?${q}`, null, true);
+          app.showToast('Tạo mã coupon thành công! ✅', 'success');
+          overlay.remove();
+        } catch(err) { app.showToast(err.message, 'error'); }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+/* ============================================================
+   Design Tokens — SaaS Modern Theme (Stripe / Udemy Business)
+   ============================================================ */
+:root {
+  /* Colors - Background */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc; /* slate-50 */
+  --color-bg-tertiary: #f1f5f9;  /* slate-100 */
+  --color-bg-card: #ffffff;
+  --color-bg-glass: rgba(255, 255, 255, 0.95);
+  --color-bg-glass-hover: rgba(248, 250, 252, 0.95);
+
+  /* Accent (Brand Primary) */
+  --color-accent: #2563eb;       /* blue-600 */
+  --color-accent-light: #3b82f6; /* blue-500 */
+  --color-accent-dark: #1d4ed8;  /* blue-700 */
+  --color-accent-glow: rgba(37, 99, 235, 0.1);
+  --color-secondary: #475569;    /* slate-600 */
+  --color-secondary-light: #64748b; /* slate-500 */
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #1e40af, #2563eb);
+  --gradient-hero: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+  --gradient-card: linear-gradient(145deg, #ffffff, #f8fafc);
+  --gradient-button: linear-gradient(135deg, #2563eb, #1d4ed8);
+
+  /* Text */
+  --color-text-primary: #0f172a;   /* slate-900 */
+  --color-text-secondary: #475569; /* slate-600 */
+  --color-text-muted: #94a3b8;     /* slate-400 */
+  --color-text-accent: #2563eb;    /* blue-600 */
+
+  /* Status */
+  --color-success: #16a34a;        /* green-600 */
+  --color-success-bg: rgba(22, 163, 74, 0.1);
+  --color-warning: #ea580c;        /* orange-600 */
+  --color-warning-bg: rgba(234, 88, 12, 0.1);
+  --color-error: #dc2626;          /* red-600 */
+  --color-error-bg: rgba(220, 38, 38, 0.1);
+  --color-info: #0284c7;           /* sky-600 */
+  --color-info-bg: rgba(2, 132, 199, 0.1);
+
+  /* Borders */
+  --color-border: #e2e8f0;         /* slate-200 */
+  --color-border-accent: rgba(37, 99, 235, 0.3);
+
+  /* Shadows (SaaS Soft Shadows) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.025);
+  --shadow-glow: 0 0 15px rgba(37, 99, 235, 0.15);
+  --shadow-glow-lg: 0 10px 25px rgba(37, 99, 235, 0.2);
+
+  /* Typography */
+  --font-sans: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* Layout */
+  --nav-height: 72px;
+  --sidebar-width: 280px;
+  --container-max: 1280px;
+}
