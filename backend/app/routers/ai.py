@@ -84,7 +84,7 @@ def ai_tutor_chat(
     Fallback sang rule-based nếu không có GEMINI_API_KEY.
     """
     system_prompt = _build_system_prompt(current_user.name, req.context)
-    model_used = "gemini-1.5-flash"
+    model_used = "gemini-2.0-flash"
 
     if settings.GEMINI_API_KEY:
         try:

@@ -1,5 +1,6 @@
 import { authApi } from '../api/auth.js';
 import { orderApi } from '../api/order.js';
+import { api } from '../api/client.js';
 import { AppState, requireAuth, showToast, formatPrice, formatDate, renderProductCard } from '../app.js';
 
 if (!requireAuth()) throw new Error('Auth required');

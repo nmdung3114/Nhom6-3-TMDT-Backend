@@ -48,27 +48,86 @@ def get_stats(
 @router.get("/stats/revenue-chart")
 def revenue_chart(
     days: int = 7,
+    period: str = None,   # 'week' | 'month' | 'year' | None
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    """Doanh thu theo ngày (7 hoặc 30 ngày)."""
+    """Doanh thu theo ngày. Hỗ trợ period=week|month|year hoặc days=N."""
     from datetime import timedelta
+    from calendar import monthrange
     from app.models.order import Payment
-    days = min(max(days, 7), 30)
+
+    today = date.today()
     result = []
-    for i in range(days - 1, -1, -1):
-        day = date.today() - timedelta(days=i)
-        start = datetime.combine(day, datetime.min.time())
-        end = datetime.combine(day, datetime.max.time())
-        revenue = db.query(func.sum(Payment.amount)).filter(
-            Payment.status == "success",
-            Payment.paid_at >= start,
-            Payment.paid_at <= end,
-        ).scalar() or Decimal("0")
-        result.append({
-            "date": day.strftime("%d/%m"),
-            "revenue": float(revenue),
-        })
+
+    if period == 'week':
+        # Current week (Mon – today)
+        start_of_week = today - timedelta(days=today.weekday())
+        num_days = (today - start_of_week).days + 1
+        for i in range(num_days):
+            day = start_of_week + timedelta(days=i)
+            start = datetime.combine(day, datetime.min.time())
+            end   = datetime.combine(day, datetime.max.time())
+            revenue = db.query(func.sum(Payment.amount)).filter(
+                Payment.status == "success",
+                Payment.paid_at >= start,
+                Payment.paid_at <= end,
+            ).scalar() or Decimal("0")
+            result.append({"date": day.strftime("%d/%m"), "revenue": float(revenue)})
+
+    elif period == 'month':
+        # Group by week of the current month
+        first_day = today.replace(day=1)
+        _, last_day_num = monthrange(today.year, today.month)
+        last_day = today.replace(day=last_day_num)
+        week_start = first_day
+        week_num = 1
+        while week_start <= today:
+            week_end = min(week_start + timedelta(days=6), today)
+            start = datetime.combine(week_start, datetime.min.time())
+            end   = datetime.combine(week_end, datetime.max.time())
+            revenue = db.query(func.sum(Payment.amount)).filter(
+                Payment.status == "success",
+                Payment.paid_at >= start,
+                Payment.paid_at <= end,
+            ).scalar() or Decimal("0")
+            result.append({
+                "date": f"Tuần {week_num} ({week_start.strftime('%d/%m')}–{week_end.strftime('%d/%m')})",
+                "revenue": float(revenue)
+            })
+            week_start += timedelta(days=7)
+            week_num += 1
+
+    elif period == 'year':
+        # Group by month of the current year
+        for m in range(1, today.month + 1):
+            _, last_d = monthrange(today.year, m)
+            start = datetime.combine(date(today.year, m, 1), datetime.min.time())
+            end   = datetime.combine(date(today.year, m, last_d), datetime.max.time())
+            revenue = db.query(func.sum(Payment.amount)).filter(
+                Payment.status == "success",
+                Payment.paid_at >= start,
+                Payment.paid_at <= end,
+            ).scalar() or Decimal("0")
+            result.append({
+                "date": f"Tháng {m}/{today.year}",
+                "revenue": float(revenue)
+            })
+
+    else:
+        # Default: by day
+        num_days = min(max(days, 7), 90)
+        for i in range(num_days - 1, -1, -1):
+            day = today - timedelta(days=i)
+            start = datetime.combine(day, datetime.min.time())
+            end   = datetime.combine(day, datetime.max.time())
+            revenue = db.query(func.sum(Payment.amount)).filter(
+                Payment.status == "success",
+                Payment.paid_at >= start,
+                Payment.paid_at <= end,
+            ).scalar() or Decimal("0")
+            result.append({"date": day.strftime("%d/%m"), "revenue": float(revenue)})
+
     return result
 
 
@@ -384,7 +443,20 @@ def create_category(
 # ── Coupons ────────────────────────────────────────────────
 @router.get("/coupons")
 def list_coupons(db: Session = Depends(get_db), _: User = Depends(require_admin)):
-    return db.query(Coupon).all()
+    coupons = db.query(Coupon).order_by(Coupon.code).all()
+    result = []
+    for c in coupons:
+        result.append({
+            "code": c.code,
+            "discount": float(c.discount),
+            "discount_type": c.discount_type,
+            "min_order_amount": float(c.min_order_amount or 0),
+            "usage_limit": c.usage_limit,
+            "used_count": c.used_count or 0,
+            "is_active": c.is_active,
+            "expired_date": c.expired_date.isoformat() if c.expired_date else None,
+        })
+    return result
 
 
 @router.post("/coupons")
@@ -406,3 +478,221 @@ def create_coupon(
     db.add(coupon)
     db.commit()
     return {"message": "Tạo coupon thành công", "code": code}
+
+
+@router.delete("/coupons/{code}")
+def delete_coupon(
+    code: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Xóa coupon theo code (primary key natural)."""
+    coupon = db.query(Coupon).filter(Coupon.code == code).first()
+    if not coupon:
+        raise NotFoundException("Coupon không tồn tại")
+    db.delete(coupon)
+    db.commit()
+    return {"message": "Đã xóa coupon"}
+
+
+# ── Course Content (Module + Lesson) Management ───────────
+@router.get("/courses/{product_id}/content")
+def get_course_content_admin(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Lấy toàn bộ nội dung khóa học (modules + lessons) cho admin."""
+    from sqlalchemy.orm import joinedload
+    product = db.query(Product).options(
+        joinedload(Product.course).joinedload(Course.modules).joinedload(Module.lessons)
+    ).filter(Product.product_id == product_id, Product.product_type == "course").first()
+    if not product or not product.course:
+        raise NotFoundException("Khóa học không tồn tại")
+
+    modules = []
+    for m in sorted(product.course.modules, key=lambda x: x.sort_order):
+        lessons = []
+        for l in sorted(m.lessons, key=lambda x: x.sort_order):
+            lessons.append({
+                "lesson_id": l.lesson_id,
+                "title": l.title,
+                "mux_playback_id": l.mux_playback_id or "",
+                "mux_asset_id": l.mux_asset_id or "",
+                "duration": l.duration,
+                "sort_order": l.sort_order,
+                "is_preview": l.is_preview,
+            })
+        modules.append({
+            "module_id": m.module_id,
+            "title": m.title,
+            "sort_order": m.sort_order,
+            "lessons": lessons,
+        })
+    return {
+        "product_id": product_id,
+        "name": product.name,
+        "total_lessons": product.course.total_lessons or 0,
+        "modules": modules,
+    }
+
+
+@router.post("/courses/{product_id}/modules")
+def create_module(
+    product_id: int,
+    title: str,
+    sort_order: int = 0,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Tạo module mới cho khóa học."""
+    course = db.query(Course).filter(Course.product_id == product_id).first()
+    if not course:
+        raise NotFoundException("Khóa học không tồn tại")
+    module = Module(course_id=product_id, title=title, sort_order=sort_order)
+    db.add(module)
+    db.commit()
+    db.refresh(module)
+    return {"module_id": module.module_id, "title": module.title, "sort_order": module.sort_order}
+
+
+@router.put("/modules/{module_id}")
+def update_module(
+    module_id: int,
+    title: Optional[str] = None,
+    sort_order: Optional[int] = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Sửa thông tin module."""
+    module = db.query(Module).filter(Module.module_id == module_id).first()
+    if not module:
+        raise NotFoundException("Module không tồn tại")
+    if title is not None:
+        module.title = title
+    if sort_order is not None:
+        module.sort_order = sort_order
+    db.commit()
+    return {"message": "Cập nhật module thành công"}
+
+
+@router.delete("/modules/{module_id}")
+def delete_module(
+    module_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Xóa module và toàn bộ lessons trong đó."""
+    module = db.query(Module).filter(Module.module_id == module_id).first()
+    if not module:
+        raise NotFoundException("Module không tồn tại")
+    course_id = module.course_id
+    # Delete lessons first (cascade)
+    db.query(Lesson).filter(Lesson.module_id == module_id).delete()
+    db.delete(module)
+    db.commit()
+    # Recalculate total_lessons
+    _recalc_total_lessons(db, course_id)
+    return {"message": "Đã xóa module"}
+
+
+@router.post("/modules/{module_id}/lessons")
+def create_lesson(
+    module_id: int,
+    title: str,
+    mux_playback_id: str = "",
+    mux_asset_id: str = "",
+    duration: int = 0,
+    sort_order: int = 0,
+    is_preview: bool = False,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Thêm bài học mới vào module (kèm Mux Playback ID)."""
+    module = db.query(Module).filter(Module.module_id == module_id).first()
+    if not module:
+        raise NotFoundException("Module không tồn tại")
+    lesson = Lesson(
+        module_id=module_id, title=title,
+        mux_playback_id=mux_playback_id or None,
+        mux_asset_id=mux_asset_id or None,
+        duration=duration, sort_order=sort_order, is_preview=is_preview,
+    )
+    db.add(lesson)
+    db.commit()
+    db.refresh(lesson)
+    # Update total_lessons count
+    _recalc_total_lessons(db, module.course_id)
+    return {
+        "lesson_id": lesson.lesson_id,
+        "title": lesson.title,
+        "mux_playback_id": lesson.mux_playback_id or "",
+        "duration": lesson.duration,
+        "sort_order": lesson.sort_order,
+        "is_preview": lesson.is_preview,
+    }
+
+
+@router.put("/lessons/{lesson_id}")
+def update_lesson(
+    lesson_id: int,
+    title: Optional[str] = None,
+    mux_playback_id: Optional[str] = None,
+    mux_asset_id: Optional[str] = None,
+    duration: Optional[int] = None,
+    sort_order: Optional[int] = None,
+    is_preview: Optional[bool] = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Cập nhật thông tin bài học (bao gồm Mux Playback ID)."""
+    lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
+    if not lesson:
+        raise NotFoundException("Bài học không tồn tại")
+    if title is not None:
+        lesson.title = title
+    if mux_playback_id is not None:
+        lesson.mux_playback_id = mux_playback_id or None
+    if mux_asset_id is not None:
+        lesson.mux_asset_id = mux_asset_id or None
+    if duration is not None:
+        lesson.duration = duration
+    if sort_order is not None:
+        lesson.sort_order = sort_order
+    if is_preview is not None:
+        lesson.is_preview = is_preview
+    db.commit()
+    return {
+        "lesson_id": lesson.lesson_id,
+        "title": lesson.title,
+        "mux_playback_id": lesson.mux_playback_id or "",
+        "duration": lesson.duration,
+    }
+
+
+@router.delete("/lessons/{lesson_id}")
+def delete_lesson(
+    lesson_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Xóa bài học."""
+    lesson = db.query(Lesson).filter(Lesson.lesson_id == lesson_id).first()
+    if not lesson:
+        raise NotFoundException("Bài học không tồn tại")
+    module = lesson.module
+    db.delete(lesson)
+    db.commit()
+    if module:
+        _recalc_total_lessons(db, module.course_id)
+    return {"message": "Đã xóa bài học"}
+
+
+def _recalc_total_lessons(db: Session, course_id: int):
+    """Cập nhật lại tổng số bài học của khóa học."""
+    count = db.query(Lesson).join(Module).filter(Module.course_id == course_id).count()
+    course = db.query(Course).filter(Course.product_id == course_id).first()
+    if course:
+        course.total_lessons = count
+        db.commit()
+

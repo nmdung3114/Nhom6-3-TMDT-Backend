@@ -124,12 +124,24 @@ function loadLesson(lesson) {
 
   const playerWrap = document.getElementById('video-player-wrap');
   if (lesson.stream_url) {
-    playerWrap.innerHTML = `<video id="video-player" controls autoplay style="width:100%;height:100%;max-height:60vh;background:black">
-      <source src="${lesson.stream_url}" type="application/x-mpegURL">
-      <source src="${lesson.stream_url}" type="video/mp4">
-      Trình duyệt không hỗ trợ video.
-    </video>`;
-    setupVideoTracking();
+    playerWrap.innerHTML = `<video id="video-player" controls autoplay style="width:100%;height:100%;max-height:60vh;background:black"></video>`;
+    const video = document.getElementById('video-player');
+    // Load HLS.js for Chrome/Firefox/Edge (Safari supports HLS natively)
+    if (lesson.stream_url.includes('.m3u8')) {
+      if (typeof Hls !== 'undefined') {
+        _attachHls(video, lesson.stream_url);
+        setupVideoTracking();
+      } else {
+        // Lazy load hls.js from CDN
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js';
+        script.onload = () => { _attachHls(video, lesson.stream_url); setupVideoTracking(); };
+        document.head.appendChild(script);
+      }
+    } else {
+      video.src = lesson.stream_url;
+      setupVideoTracking();
+    }
   } else {
     playerWrap.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#05051a;color:var(--color-text-muted);flex-direction:column;gap:16px;padding:40px">
       <div style="font-size:3rem">🎬</div>
@@ -140,6 +152,20 @@ function loadLesson(lesson) {
 
   // Nav buttons
   updateNavButtons();
+}
+
+function _attachHls(video, url) {
+  if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+    const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+    video._hls = hls; // store ref for cleanup
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    // Safari native HLS
+    video.src = url;
+    video.play().catch(() => {});
+  }
 }
 
 function setupVideoTracking() {

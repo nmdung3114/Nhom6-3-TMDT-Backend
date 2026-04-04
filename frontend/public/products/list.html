@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Khóa học & Ebook - ELearnVN</title>
+  <title>Khóa học &amp; Ebook - ELearnVN</title>
   <meta name="description" content="Khám phá hàng trăm khóa học và ebook chất lượng cao">
   <link rel="stylesheet" href="/css/base/reset.css">
   <link rel="stylesheet" href="/css/base/variables.css">
@@ -21,23 +21,6 @@
   <nav id="navbar" class="navbar"><div class="container navbar__inner" id="navbar-inner"></div></nav>
 
   <div class="products-page">
-    <div class="products-page__header">
-      <div class="container">
-        <h1 id="page-title">Tất cả khóa học & Ebook</h1>
-        <p style="color:var(--color-text-secondary);margin-top:8px">Chọn khóa học phù hợp và bắt đầu học ngay hôm nay</p>
-        <!-- Search on page -->
-        <div style="margin-top:24px;max-width:500px">
-          <div class="search-bar" style="display:flex;align-items:center;gap:8px">
-            <div style="position:relative;flex:1">
-              <span class="search-bar__icon">🔍</span>
-              <input id="search-input" type="text" class="form-control" placeholder="Tìm khóa học, ebook..." style="border-radius:999px;padding-left:44px;padding-right:16px">
-            </div>
-            <button id="voice-search-btn" class="navbar__search-mic" title="Tìm bằng giọng nói">🎤</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="container products-layout">
       <!-- Filter Sidebar -->
       <aside class="filter-sidebar">
@@ -103,9 +86,20 @@
 
       <!-- Products Area -->
       <div>
+        <!-- Compact search + toolbar -->
         <div class="products-toolbar">
-          <span class="products-toolbar__count" id="products-count">Đang tải...</span>
-          <div style="display:flex;align-items:center;gap:12px">
+          <!-- Search inline -->
+          <div style="position:relative;flex:1;max-width:360px">
+            <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:0.9rem;color:var(--color-text-muted);pointer-events:none">🔍</span>
+            <input id="search-input" type="text" class="form-control"
+              placeholder="Tìm khóa học, ebook..."
+              style="padding-left:40px;padding-right:40px;border-radius:var(--radius-full);height:40px;font-size:0.875rem">
+            <button id="voice-search-btn" class="navbar__search-mic" title="Tìm bằng giọng nói"
+              style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:1rem;background:none;border:none;cursor:pointer;padding:4px">🎤</button>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+            <span class="products-toolbar__count" id="products-count">Đang tải...</span>
             <label style="font-size:0.85rem;color:var(--color-text-secondary)">Sắp xếp:</label>
             <select id="sort-select" class="sort-select" onchange="productsPage.applySort(this.value)">
               <option value="newest">Mới nhất</option>

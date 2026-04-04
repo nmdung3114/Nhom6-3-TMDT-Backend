@@ -1,11 +1,6 @@
 /* Products list page */
 .products-page { padding-top: var(--nav-height); }
-.products-page__header {
-  background: var(--gradient-hero);
-  padding: var(--space-12) 0;
-  border-bottom: 1px solid var(--color-border);
-}
-.products-page__header h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: var(--space-3); }
+
 .products-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -13,6 +8,7 @@
   padding: var(--space-8) 0;
   align-items: start;
 }
+
 /* Filter sidebar */
 .filter-sidebar {
   background: var(--color-bg-card);
@@ -46,14 +42,25 @@
 .filter-option.active .filter-dot { background: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 8px var(--color-accent-glow); }
 .price-range { display: flex; gap: var(--space-3); }
 .price-range .form-control { height: 40px; font-size: 0.85rem; }
-/* Products list area */
+
+/* Products toolbar */
 .products-toolbar {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: var(--space-6);
   gap: var(--space-4);
+  flex-wrap: wrap;
 }
 .products-toolbar__count { color: var(--color-text-secondary); font-size: 0.875rem; }
-.sort-select { height: 40px; padding: 0 var(--space-4); background: var(--color-bg-glass); border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); font-size: 0.875rem; cursor: pointer; }
+.sort-select {
+  height: 40px; padding: 0 var(--space-4);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.875rem; cursor: pointer;
+}
+
+/* Products grid */
 .products-grid-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -64,5 +71,7 @@
   .products-layout { grid-template-columns: 1fr; }
   .filter-sidebar { position: static; }
   .products-grid-list { grid-template-columns: repeat(3, 1fr); }
+  .products-toolbar { flex-direction: column; align-items: flex-start; }
+  .products-toolbar > div:first-child { width: 100%; max-width: 100% !important; }
 }
 @media (max-width: 640px) { .products-grid-list { grid-template-columns: repeat(1, 1fr); } }

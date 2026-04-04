@@ -1,20 +1,22 @@
 import { authApi } from '../api/auth.js';
 import { saveAuth, showToast, AppState, getQueryParam } from '../app.js';
 
+const GOOGLE_CLIENT_ID = '769838445738-qbev0l32b0namp6pq4cea7d41suhsll7.apps.googleusercontent.com';
+
 // Redirect if already logged in
 if (AppState.token && AppState.user) {
   const redirect = getQueryParam('redirect') || '/';
   location.href = redirect;
 }
 
-// ── Toggle password visibility ─────────────────────────────
+// ── Toggle password visibility ──────────────────────────────
 document.getElementById('toggle-password')?.addEventListener('click', function() {
   const input = document.getElementById('password');
   input.type = input.type === 'password' ? 'text' : 'password';
   this.textContent = input.type === 'password' ? '👁' : '🙈';
 });
 
-// ── Login form ─────────────────────────────────────────────
+// ── Login form ──────────────────────────────────────────────
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
   loginForm.addEventListener('submit', async (e) => {
@@ -43,7 +45,7 @@ if (loginForm) {
   });
 }
 
-// ── Register form ──────────────────────────────────────────
+// ── Register form ───────────────────────────────────────────
 const registerForm = document.getElementById('register-form');
 if (registerForm) {
   registerForm.addEventListener('submit', async (e) => {
@@ -77,58 +79,91 @@ if (registerForm) {
   });
 }
 
-// ── Mock OAuth (Google / Facebook) ──────────────────────────
-function showOAuthModal(provider) {
-  const providerLabel = provider === 'google' ? '🌐 Google' : '📘 Facebook';
-  const fakeAccounts = [
-    { name: 'Nguyễn Văn Demo', email: `demo.${provider}@elearning.vn`,
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=Demo` },
-    { name: 'Trần Thị Test', email: `test.${provider}@elearning.vn`,
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=Test` },
-  ];
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal">
-      <div class="modal__header">
-        <div class="modal__title">Đăng nhập với ${providerLabel}</div>
-        <div class="modal__close" onclick="this.closest('.modal-overlay').remove()">✕</div>
-      </div>
-      <p style="color:var(--color-text-secondary);font-size:0.85rem;margin-bottom:20px">
-        🔔 Đây là giao diện demo OAuth — chọn tài khoản test để tiếp tục
-      </p>
-      ${fakeAccounts.map(acc => `
-        <div class="oauth-btn" style="justify-content:flex-start;gap:16px;margin-bottom:8px" 
-             data-email="${acc.email}" data-name="${acc.name}" data-avatar="${acc.avatar}">
-          <img src="${acc.avatar}" style="width:36px;height:36px;border-radius:50%">
-          <div style="text-align:left">
-            <div style="font-weight:600;color:white">${acc.name}</div>
-            <div style="font-size:0.75rem;color:var(--color-text-muted)">${acc.email}</div>
-          </div>
-        </div>`).join('')}
-    </div>`;
-  document.body.appendChild(overlay);
+// ── Google OAuth (thực) ─────────────────────────────────────
+async function handleGoogleCredential(credentialResponse) {
+  const idToken = credentialResponse.credential;
+  if (!idToken) {
+    showToast('Đăng nhập Google thất bại. Thử lại.', 'error');
+    return;
+  }
 
-  overlay.querySelectorAll('[data-email]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      overlay.remove();
-      try {
-        const data = await authApi.oauthCallback({
-          provider,
-          email: btn.dataset.email,
-          name:  btn.dataset.name,
-          oauth_id: `${provider}_${Date.now()}`,
-          avatar_url: btn.dataset.avatar,
-        });
-        saveAuth(data);
-        showToast(`Chào mừng, ${data.name}! 🎉`, 'success');
-        setTimeout(() => location.href = '/', 600);
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
-    });
-  });
+  // Show loading state on button
+  const btn = document.getElementById('btn-google-login');
+  if (btn) {
+    btn.style.opacity = '0.7';
+    btn.style.pointerEvents = 'none';
+    btn.innerHTML = '⏳ Đang xử lý...';
+  }
+
+  try {
+    const { api } = await import('../api/client.js');
+    const data = await api.post('/auth/google', { id_token: idToken }, false);
+    saveAuth(data);
+    showToast(`Chào mừng, ${data.name}! 🎉`, 'success');
+    setTimeout(() => {
+      const redirect = getQueryParam('redirect') || (data.role === 'admin' ? '/admin/dashboard.html' : '/');
+      location.href = redirect;
+    }, 600);
+  } catch (err) {
+    showToast('Đăng nhập Google thất bại: ' + err.message, 'error');
+    // Restore button
+    if (btn) {
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+      btn.innerHTML = '<img src="https://www.google.com/favicon.ico" alt="Google" style="width:18px"> Tiếp tục với Google';
+    }
+  }
 }
 
-document.getElementById('btn-google-login')?.addEventListener('click', () => showOAuthModal('google'));
-document.getElementById('btn-facebook-login')?.addEventListener('click', () => showOAuthModal('facebook'));
+function initGoogleSignIn() {
+  if (!window.google?.accounts?.id) {
+    // Retry until GSI loads
+    setTimeout(initGoogleSignIn, 300);
+    return;
+  }
+
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true,
+    ux_mode: 'popup',
+  });
+
+  // Bind button click to trigger Google popup
+  const googleBtn = document.getElementById('btn-google-login');
+  if (googleBtn) {
+    googleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // One Tap not available — use renderButton fallback
+          window.google.accounts.id.renderButton(
+            document.getElementById('google-btn-container') || googleBtn.parentElement,
+            { theme: 'outline', size: 'large', width: '100%' }
+          );
+          showToast('Vui lòng chọn tài khoản Google trong popup', 'info');
+        }
+      });
+    });
+  }
+}
+
+// Load Google Identity Services script dynamically
+function loadGSI() {
+  if (document.getElementById('gsi-script')) return;
+  const script = document.createElement('script');
+  script.id = 'gsi-script';
+  script.src = 'https://accounts.google.com/gsi/client';
+  script.async = true;
+  script.defer = true;
+  script.onload = () => initGoogleSignIn();
+  document.head.appendChild(script);
+}
+
+loadGSI();
+
+// ── Facebook OAuth (placeholder — requires HTTPS) ───────────
+document.getElementById('btn-facebook-login')?.addEventListener('click', () => {
+  showToast('Đăng nhập Facebook cần HTTPS. Hiện chưa hỗ trợ ở localhost.', 'info');
+});

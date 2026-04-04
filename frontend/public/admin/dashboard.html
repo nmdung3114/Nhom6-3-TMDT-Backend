@@ -42,6 +42,7 @@
       <a href="/admin/users.html" class="admin-nav-item"><span class="admin-icon">👥</span> Người dùng</a>
       <a href="/admin/products.html" class="admin-nav-item"><span class="admin-icon">📚</span> Sản phẩm</a>
       <a href="/admin/orders.html" class="admin-nav-item"><span class="admin-icon">📦</span> Đơn hàng</a>
+      <a href="/admin/coupons.html" class="admin-nav-item"><span class="admin-icon">🏷</span> Mã giảm giá</a>
 
       <div class="admin-sidebar__section-title" style="margin-top:16px">Hệ thống</div>
       <a href="/api/docs" target="_blank" class="admin-nav-item"><span class="admin-icon">📖</span> API Docs</a>
@@ -90,17 +91,28 @@
       </div>
 
       <!-- Charts Row -->
-      <div class="admin-grid-2" style="margin-top:24px">
-        <div class="chart-card">
-          <div class="chart-card__title">📈 Doanh thu 7 ngày gần nhất</div>
-          <div class="chart-container">
+      <div style="margin-top:24px">
+        <!-- Revenue Chart -->
+        <div class="chart-card" style="margin-bottom:24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div class="chart-card__title" style="margin-bottom:0">📈 Biểu đồ doanh thu</div>
+            <div id="revenue-period-filter" style="display:flex;gap:8px;flex-wrap:wrap">
+              <!-- Period filter buttons rendered by JS -->
+              <div class="spinner spinner-sm"></div>
+            </div>
+          </div>
+          <div class="chart-container" style="height:280px">
             <canvas id="revenue-chart"></canvas>
           </div>
         </div>
+
+        <!-- Top Products -->
         <div class="chart-card">
-          <div class="chart-card__title">🏆 Top 5 sản phẩm bán chạy</div>
-          <div class="chart-container">
-            <canvas id="top-products-chart"></canvas>
+          <div class="chart-card__title">🏆 Top 5 sản phẩm bán chạy nhất</div>
+          <div id="top-products-table">
+            <div style="display:flex;align-items:center;justify-content:center;padding:40px;gap:12px;color:var(--color-text-muted)">
+              <div class="spinner spinner-sm"></div> Đang tải...
+            </div>
           </div>
         </div>
       </div>

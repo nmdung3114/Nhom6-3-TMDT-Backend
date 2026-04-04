@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Coupon - Admin ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/form.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+</head>
+<body data-page="coupons">
+  <div id="toast-container" class="toast-container"></div>
+  <nav class="navbar" id="navbar" style="z-index:200">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__brand">
+        <div class="navbar__brand-icon">🎓</div>
+        <span class="navbar__brand-text">ELearnVN</span>
+        <span style="font-size:0.7rem;background:var(--color-error-bg);color:var(--color-error);padding:2px 8px;border-radius:4px;margin-left:4px;font-weight:700">ADMIN</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:12px">
+        <a href="/" class="btn btn-ghost btn-sm">🏠 Trang web</a>
+        <button class="btn btn-secondary btn-sm" onclick="app.logout()">🚪 Đăng xuất</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="admin-page">
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar__section-title">Tổng quan</div>
+      <a href="/admin/dashboard.html" class="admin-nav-item"><span class="admin-icon">📊</span> Dashboard</a>
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Quản lý</div>
+      <a href="/admin/users.html" class="admin-nav-item"><span class="admin-icon">👥</span> Người dùng</a>
+      <a href="/admin/products.html" class="admin-nav-item"><span class="admin-icon">📚</span> Sản phẩm</a>
+      <a href="/admin/orders.html" class="admin-nav-item"><span class="admin-icon">📦</span> Đơn hàng</a>
+      <a href="/admin/coupons.html" class="admin-nav-item active"><span class="admin-icon">🏷</span> Mã giảm giá</a>
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Hệ thống</div>
+      <a href="/api/docs" target="_blank" class="admin-nav-item"><span class="admin-icon">📖</span> API Docs</a>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <h1 class="admin-header__title">🏷 Quản lý mã giảm giá</h1>
+          <p class="admin-header__subtitle">Tạo và quản lý các mã coupon cho người dùng</p>
+        </div>
+        <button class="btn btn-primary" onclick="showCreateCouponModal()">+ Tạo mã mới</button>
+      </div>
+
+      <!-- Table -->
+      <div class="data-table-wrap">
+        <div class="data-table-header">
+          <div class="data-table-title">Danh sách mã giảm giá</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã coupon</th>
+                <th>Mức giảm</th>
+                <th>Loại</th>
+                <th>Đơn tối thiểu</th>
+                <th>% dùng</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="coupons-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/admin-page.js"></script>
+  <script>
+    function showCreateCouponModal() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal" style="max-width:480px">
+        <div class="modal__header">
+          <div class="modal__title">🏷 Tạo mã giảm giá</div>
+          <div class="modal__close" onclick="this.closest('.modal-overlay').remove()">✕</div>
+        </div>
+        <form id="coupon-form">
+          <div class="form-group"><label class="form-label">Mã coupon <span style="color:var(--color-error)">*</span></label>
+            <input class="form-control" name="code" placeholder="VD: SUMMER30" style="text-transform:uppercase" required></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="form-group"><label class="form-label">Loại giảm</label>
+              <select class="form-control" name="discount_type">
+                <option value="fixed">Cố định (đ)</option>
+                <option value="percent">Phần trăm (%)</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Mức giảm <span style="color:var(--color-error)">*</span></label>
+              <input type="number" class="form-control" name="discount" min="0" required></div>
+          </div>
+          <div class="form-group"><label class="form-label">Đơn tối thiểu (đ)</label>
+            <input type="number" class="form-control" name="min_order_amount" value="0" min="0"></div>
+          <div class="form-group"><label class="form-label">Giới hạn sử dụng</label>
+            <input type="number" class="form-control" name="usage_limit" placeholder="Để trống = không giới hạn"></div>
+          <button type="submit" class="btn btn-primary btn-block">Tạo mã giảm giá</button>
+        </form>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('coupon-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = Object.fromEntries(fd.entries());
+        const { api } = await import('/js/api/client.js');
+        const q = new URLSearchParams({
+          code: data.code.toUpperCase(),
+          discount: data.discount,
+          discount_type: data.discount_type,
+          min_order_amount: data.min_order_amount || 0,
+          ...(data.usage_limit ? { usage_limit: data.usage_limit } : {}),
+        });
+        try {
+          await api.post(`/admin/coupons?${q}`, null, true);
+          app.showToast('Tạo mã coupon thành công! ✅', 'success');
+          overlay.remove();
+          window.loadCoupons();
+        } catch(err) { app.showToast(err.message, 'error'); }
+      });
+    }
+  </script>
+</body>
+</html>

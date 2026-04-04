@@ -20,13 +20,13 @@ async function init() {
   const searchInput = document.getElementById('search-input');
   if (searchInput && state.search) searchInput.value = state.search;
 
-  // Update page title
+  // Update browser tab title based on filter type
   if (state.product_type === 'course') {
-    document.getElementById('page-title').textContent = 'Khóa học trực tuyến';
     document.title = 'Khóa học - ELearnVN';
   } else if (state.product_type === 'ebook') {
-    document.getElementById('page-title').textContent = 'Thư viện Ebook';
     document.title = 'Ebook - ELearnVN';
+  } else {
+    document.title = 'Tất cả Khóa học & Ebook - ELearnVN';
   }
 
   // Highlight type filter

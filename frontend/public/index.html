@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ELearnVN - Nền tảng học trực tuyến hàng đầu Việt Nam. Khóa học lập trình, AI, thiết kế, kinh doanh">
+  <meta name="description" content="ELearnVN - Nền tảng học trực tuyến hàng đầu Việt Nam. Khóa học lập trình, AI, thiết kế, kinh doanh từ chuyên gia thực chiến.">
+  <meta name="theme-color" content="#6366f1">
   <title>ELearnVN - Học Online Không Giới Hạn</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
   <!-- CSS -->
@@ -38,6 +39,7 @@
       <nav class="navbar__nav">
         <a href="/products/list.html" class="navbar__nav-link">📚 <span>Khóa học</span></a>
         <a href="/products/list.html?type=ebook" class="navbar__nav-link">📖 <span>Ebook</span></a>
+        <button id="theme-toggle" class="theme-toggle" title="Đổi chủ đề sáng/tối" aria-label="Đổi chủ đề">🌙</button>
         <!-- Auth: shown when logged out -->
         <div id="nav-auth">
           <a href="/auth/login.html" class="btn btn-sm btn-secondary">Đăng nhập</a>
@@ -87,15 +89,15 @@
         </div>
         <div class="hero__stats">
           <div class="hero__stat">
-            <div class="hero__stat-value text-gradient">50K+</div>
+            <div class="hero__stat-value" data-count="50000" data-suffix="+">50K+</div>
             <div class="hero__stat-label">Học viên</div>
           </div>
           <div class="hero__stat">
-            <div class="hero__stat-value text-gradient">200+</div>
+            <div class="hero__stat-value" data-count="200" data-suffix="+">200+</div>
             <div class="hero__stat-label">Khóa học</div>
           </div>
           <div class="hero__stat">
-            <div class="hero__stat-value text-gradient">98%</div>
+            <div class="hero__stat-value" data-count="98" data-suffix="%">98%</div>
             <div class="hero__stat-label">Hài lòng</div>
           </div>
         </div>
@@ -134,7 +136,8 @@
   <!-- Categories Section -->
   <section class="categories section">
     <div class="container">
-      <div style="text-align:center;margin-bottom:48px">
+      <div style="text-align:center;margin-bottom:48px" class="animate-on-scroll">
+        <div class="section-label">✦ Danh mục</div>
         <h2 class="section-title">Khám phá theo danh mục</h2>
         <p class="section-subtitle">Từ lập trình đến kinh doanh — tất cả đều có tại đây</p>
       </div>
@@ -171,10 +174,11 @@
   <!-- Featured Courses -->
   <section class="products-section section">
     <div class="container">
-      <div class="products-header">
+      <div class="products-header animate-on-scroll">
         <div>
+          <div class="section-label">🔥 Hot nhất</div>
           <h2 class="section-title">Khóa học nổi bật</h2>
-          <p style="color:var(--color-text-secondary)">Được yêu thích nhất bởi học viên</p>
+          <p class="text-secondary">Được yêu thích nhất bởi học viên</p>
         </div>
         <a href="/products/list.html?type=course" class="btn btn-secondary">Xem tất cả →</a>
       </div>
@@ -187,10 +191,11 @@
   <!-- Featured Ebooks -->
   <section class="products-section section" style="padding-top:0">
     <div class="container">
-      <div class="products-header">
+      <div class="products-header animate-on-scroll">
         <div>
+          <div class="section-label">📚 Ebook</div>
           <h2 class="section-title">Ebook phổ biến</h2>
-          <p style="color:var(--color-text-secondary)">Tài liệu số chất lượng cao</p>
+          <p class="text-secondary">Tài liệu số chất lượng cao từ chuyên gia</p>
         </div>
         <a href="/products/list.html?type=ebook" class="btn btn-secondary">Xem tất cả →</a>
       </div>
@@ -203,55 +208,55 @@
   <!-- Features Section -->
   <section class="features section">
     <div class="container">
-      <div style="text-align:center;margin-bottom:64px">
-        <h2 class="section-title">Tại sao chọn ELearnVN?</h2>
+      <div style="text-align:center;margin-bottom:64px" class="animate-on-scroll">
+        <div class="section-label">⭐ Tại sao chọn chúng tôi</div>
+        <h2 class="section-title">ELearnVN — Học một lần,<br>Dùng mãi mãi</h2>
+        <p class="section-subtitle" style="margin-left:auto;margin-right:auto">Chất lượng được kiểm chứng bởi hàng chục nghìn học viên khắp Việt Nam</p>
       </div>
       <div class="features__grid">
-        <div class="feature-card">
+        <div class="feature-card animate-on-scroll delay-1">
           <span class="feature-card__icon">🎬</span>
           <h3 class="feature-card__title">Video chất lượng cao</h3>
-          <p class="feature-card__desc">Nội dung được stream qua Mux, hỗ trợ 1080p, tự động điều chỉnh chất lượng theo mạng.</p>
+          <p class="feature-card__desc">Stream qua Mux, hỗ trợ Full HD 1080p, tự động điều chỉnh chất lượng theo băng thông mạng của bạn.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card animate-on-scroll delay-2">
           <span class="feature-card__icon">🔒</span>
-          <h3 class="feature-card__title">Bảo vệ nội dung</h3>
-          <p class="feature-card__desc">Nội dung được bảo vệ bằng signed URL có thời hạn — không thể chia sẻ trái phép.</p>
+          <h3 class="feature-card__title">Nội dung được bảo vệ</h3>
+          <p class="feature-card__desc">Signed URL có thời hạn — đảm bảo nội dung chỉ dành riêng cho học viên đã mua, không thể chia sẻ lậu.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card animate-on-scroll delay-3">
           <span class="feature-card__icon">📊</span>
           <h3 class="feature-card__title">Theo dõi tiến độ</h3>
-          <p class="feature-card__desc">Tự động lưu tiến độ học, biết bạn đang ở đâu và còn bao nhiêu bài nữa.</p>
+          <p class="feature-card__desc">Tự động lưu tiến trình học, báo bạn còn bao nhiêu bài — học lại từ đúng chỗ cũ bất cứ lúc nào.</p>
         </div>
-        <div class="feature-card">
+        <div class="feature-card animate-on-scroll delay-1">
           <span class="feature-card__icon">💳</span>
           <h3 class="feature-card__title">Thanh toán an toàn</h3>
-          <p class="feature-card__desc">Tích hợp VNPay sandbox — trải nghiệm thanh toán đúng như thật, bảo mật tuyệt đối.</p>
+          <p class="feature-card__desc">Tích hợp VNPay với mã hoá SSL — trải nghiệm thanh toán thật như ngân hàng, không lưu thông tin thẻ.</p>
         </div>
-        <div class="feature-card">
-          <span class="feature-card__icon">📱</span>
-          <h3 class="feature-card__title">Học mọi thiết bị</h3>
-          <p class="feature-card__desc">Responsive design — học trên điện thoại, máy tính bảng hay laptop đều mượt mà.</p>
+        <div class="feature-card animate-on-scroll delay-2">
+          <span class="feature-card__icon">🤖</span>
+          <h3 class="feature-card__title">AI Tutor 24/7</h3>
+          <p class="feature-card__desc">Trợ lý AI powered by Gemini sẵn sàng giải đáp mọi câu hỏi về bài học, bất cứ lúc nào bạn cần.</p>
         </div>
-        <div class="feature-card">
-          <span class="feature-card__icon">⚡</span>
-          <h3 class="feature-card__title">Truy cập tức thì</h3>
-          <p class="feature-card__desc">Sau khi thanh toán thành công, bạn có quyền truy cập ngay — không cần chờ xét duyệt.</p>
+        <div class="feature-card animate-on-scroll delay-3">
+          <span class="feature-card__icon">🎓</span>
+          <h3 class="feature-card__title">Chứng chỉ hoàn thành</h3>
+          <p class="feature-card__desc">Hoàn tất khoá học, nhận ngay chứng chỉ có thể chia sẻ lên LinkedIn — minh chứng kỹ năng của bạn.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- CTA Section -->
-  <section class="cta-section section">
+  <section class="cta-section section animate-on-scroll">
     <div class="container">
       <div class="cta-card">
-        <h2 style="font-size:2.5rem;font-weight:900;margin-bottom:16px">Bắt đầu hành trình học tập ngay hôm nay</h2>
-        <p style="color:var(--color-text-secondary);font-size:1.1rem;margin-bottom:40px;max-width:600px;margin-left:auto;margin-right:auto">
-          Tham gia cộng đồng 50,000+ học viên đang nâng cao kỹ năng mỗi ngày
-        </p>
-        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-          <a href="/auth/register.html" class="btn btn-primary btn-xl">🚀 Đăng ký miễn phí</a>
-          <a href="/products/list.html" class="btn btn-outline btn-xl">Xem khóa học</a>
+        <h2>Bắt đầu hành trình học tập<br>ngay hôm nay 🚀</h2>
+        <p>Tham gia cộng đồng <strong>50,000+</strong> học viên đang nâng cao kỹ năng mỗi ngày — miễn phí để thử!</p>
+        <div class="cta-actions">
+          <a href="/auth/register.html" class="btn btn-xl btn-cta-white">🎓 Đăng ký miễn phí</a>
+          <a href="/products/list.html" class="btn btn-xl btn-cta-outline-white">📚 Xem khóa học</a>
         </div>
       </div>
     </div>

@@ -37,26 +37,33 @@ export function initApp() {
 function setupVoiceSearch() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const micBtn = document.getElementById('voice-search-btn');
-    const searchInput = document.getElementById('search-input');
+  // Use event delegation — works for mic buttons added dynamically
+  // (e.g. the one inside products-toolbar in products/list.html)
+  document.addEventListener('click', (e) => {
+    const micBtn = e.target.closest('#voice-search-btn');
     if (!micBtn) return;
 
     if (!SpeechRecognition) {
-      micBtn.title = 'Trình duyệt không hỗ trợ tìm kiếm giọng nói';
-      micBtn.style.opacity = '0.4';
+      showToast('Trình duyệt không hỗ trợ tìm kiếm giọng nói', 'error');
       return;
     }
 
+    // Toggle off if already listening
+    if (micBtn.classList.contains('listening')) {
+      window._activeRecognition?.stop();
+      return;
+    }
+
+    // ── Create a FRESH instance every click (fixes "works once" bug) ──
     const recognition = new SpeechRecognition();
     recognition.lang = 'vi-VN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-    let overlay = null;
-    let isListening = false;
+    window._activeRecognition = recognition;
 
     function showVoiceOverlay() {
-      overlay = document.createElement('div');
+      document.getElementById('voice-overlay')?.remove(); // cleanup stale
+      const overlay = document.createElement('div');
       overlay.className = 'voice-overlay';
       overlay.id = 'voice-overlay';
       overlay.innerHTML = `
@@ -68,21 +75,13 @@ function setupVoiceSearch() {
       document.getElementById('voice-cancel')?.addEventListener('click', () => {
         recognition.stop();
       });
-      window._voiceRecognition = recognition;
     }
 
     function hideVoiceOverlay() {
-      overlay?.remove();
-      overlay = null;
+      document.getElementById('voice-overlay')?.remove();
     }
 
-    micBtn.addEventListener('click', () => {
-      if (isListening) { recognition.stop(); return; }
-      try { recognition.start(); } catch {}
-    });
-
     recognition.onstart = () => {
-      isListening = true;
       micBtn.classList.add('listening');
       showVoiceOverlay();
     };
@@ -90,29 +89,44 @@ function setupVoiceSearch() {
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       hideVoiceOverlay();
-      if (searchInput) searchInput.value = transcript;
-      const currentUrl = location.pathname;
-      if (currentUrl.includes('/products/list')) {
-        const url = new URL(location.href);
-        url.searchParams.set('search', transcript);
-        location.href = url.toString();
-      } else {
-        location.href = `/products/list.html?search=${encodeURIComponent(transcript)}`;
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.value = transcript;
+        // On the list page — trigger input event so filter runs without page reload
+        if (location.pathname.includes('/products/list')) {
+          searchInput.dispatchEvent(new Event('input'));
+          return;
+        }
       }
+      // Otherwise navigate to list page with search query
+      location.href = `/products/list.html?search=${encodeURIComponent(transcript)}`;
     };
 
     recognition.onerror = (event) => {
       hideVoiceOverlay();
-      if (event.error !== 'aborted' && event.error !== 'no-speech') {
-        showToast('⚠️ Không nhận diện được giọng nói. Vui lòng thử lại.', 'error');
+      micBtn.classList.remove('listening');
+      window._activeRecognition = null;
+      if (event.error === 'not-allowed') {
+        showToast('⚠️ Hãy cấp quyền microphone trong cài đặt trình duyệt.', 'error');
+      } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+        showToast('⚠️ Không nhận diện được. Vui lòng thử lại.', 'error');
       }
     };
 
     recognition.onend = () => {
-      isListening = false;
       micBtn.classList.remove('listening');
       hideVoiceOverlay();
+      window._activeRecognition = null;
     };
+
+    try {
+      recognition.start();
+    } catch (err) {
+      console.warn('Voice recognition start error:', err);
+      showToast('Không thể khởi động microphone. Thử lại.', 'error');
+      micBtn.classList.remove('listening');
+      window._activeRecognition = null;
+    }
   });
 }
 
