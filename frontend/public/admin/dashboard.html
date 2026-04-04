@@ -10,7 +10,9 @@
   <link rel="stylesheet" href="/css/components/header.css">
   <link rel="stylesheet" href="/css/components/button.css">
   <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/features.css">
   <link rel="stylesheet" href="/css/pages/pages-combined.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body data-page="dashboard">
   <div id="toast-container" class="toast-container"></div>
@@ -87,8 +89,24 @@
         </div>
       </div>
 
+      <!-- Charts Row -->
+      <div class="admin-grid-2" style="margin-top:24px">
+        <div class="chart-card">
+          <div class="chart-card__title">📈 Doanh thu 7 ngày gần nhất</div>
+          <div class="chart-container">
+            <canvas id="revenue-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card__title">🏆 Top 5 sản phẩm bán chạy</div>
+          <div class="chart-container">
+            <canvas id="top-products-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick links -->
-      <div class="admin-grid-2">
+      <div class="admin-grid-2" style="margin-top:24px">
         <div class="chart-card">
           <div class="chart-card__title">⚡ Thao tác nhanh</div>
           <div style="display:flex;flex-direction:column;gap:12px">

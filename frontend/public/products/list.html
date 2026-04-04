@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="/css/components/button.css">
   <link rel="stylesheet" href="/css/components/card.css">
   <link rel="stylesheet" href="/css/components/form.css">
+  <link rel="stylesheet" href="/css/components/features.css">
   <link rel="stylesheet" href="/css/pages/products/list.css">
 </head>
 <body>
@@ -26,9 +27,12 @@
         <p style="color:var(--color-text-secondary);margin-top:8px">Chọn khóa học phù hợp và bắt đầu học ngay hôm nay</p>
         <!-- Search on page -->
         <div style="margin-top:24px;max-width:500px">
-          <div class="search-bar">
-            <span class="search-bar__icon">🔍</span>
-            <input id="search-input" type="text" class="form-control" placeholder="Tìm theo tên khóa học, ebook..." style="border-radius:999px;padding-left:44px">
+          <div class="search-bar" style="display:flex;align-items:center;gap:8px">
+            <div style="position:relative;flex:1">
+              <span class="search-bar__icon">🔍</span>
+              <input id="search-input" type="text" class="form-control" placeholder="Tìm khóa học, ebook..." style="border-radius:999px;padding-left:44px;padding-right:16px">
+            </div>
+            <button id="voice-search-btn" class="navbar__search-mic" title="Tìm bằng giọng nói">🎤</button>
           </div>
         </div>
       </div>

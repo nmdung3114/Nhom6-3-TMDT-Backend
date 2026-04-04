@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/css/components/button.css">
   <link rel="stylesheet" href="/css/components/card.css">
   <link rel="stylesheet" href="/css/components/form.css">
+  <link rel="stylesheet" href="/css/components/features.css">
   <link rel="stylesheet" href="/css/pages/pages-combined.css">
 </head>
 <body>
@@ -40,6 +41,9 @@
             </div>
             <div class="profile-nav-item" id="nav-my-orders" data-tab="my-orders">
               📦 Đơn hàng gần đây
+            </div>
+            <div class="profile-nav-item" id="nav-wishlist" data-tab="wishlist">
+              ❤️ Yêu thích
             </div>
             <div class="divider"></div>
             <div class="profile-nav-item" style="color:var(--color-error)" onclick="app.logout()">
@@ -127,6 +131,18 @@
               <a href="/orders/index.html" class="btn btn-secondary btn-sm">Xem tất cả →</a>
             </div>
             <div id="my-orders-list">
+              <div class="loading-overlay"><div class="spinner"></div></div>
+            </div>
+          </div>
+          </div>
+
+          <!-- Wishlist Tab -->
+          <div id="tab-wishlist" class="profile-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+              <h2 class="profile-section__title" style="margin-bottom:0">❤️ Yêu thích</h2>
+              <a href="/products/list.html" class="btn btn-secondary btn-sm">⭐ Khám phá thêm</a>
+            </div>
+            <div id="wishlist-grid" class="my-courses-grid">
               <div class="loading-overlay"><div class="spinner"></div></div>
             </div>
           </div>

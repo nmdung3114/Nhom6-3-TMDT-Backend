@@ -9,6 +9,7 @@ from app.config import settings
 from app.core.middleware import ProcessTimeMiddleware, SecurityHeadersMiddleware
 from app.core.exceptions import AppException
 from app.routers import auth, users, products, cart, orders, learning, payment, admin, ai
+from app.routers import wishlist, notifications, certificates
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -54,6 +55,9 @@ app.include_router(learning.router)
 app.include_router(payment.router)
 app.include_router(admin.router)
 app.include_router(ai.router)
+app.include_router(wishlist.router)
+app.include_router(notifications.router)
+app.include_router(certificates.router)
 
 # ── Upload dir ─────────────────────────────────────────────
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -66,3 +70,7 @@ def health():
 @app.on_event("startup")
 async def startup():
     logger.info(f"🚀 {settings.APP_NAME} starting in {settings.APP_ENV} mode")
+    # Auto-create new tables (idempotent)
+    from app.database import engine, Base
+    import app.models  # ensure all models are imported
+    Base.metadata.create_all(bind=engine)

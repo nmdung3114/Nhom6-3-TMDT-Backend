@@ -67,6 +67,34 @@ function updateOverallProgress(modules) {
   const pct = allLessons.length > 0 ? Math.round((completed / allLessons.length) * 100) : 0;
   document.getElementById('progress-fill').style.width = `${pct}%`;
   document.getElementById('progress-text').textContent = `${pct}% hoàn thành (${completed}/${allLessons.length} bài)`;
+
+  // Hiển thị certificate banner khi đạt 100%
+  if (pct === 100) {
+    checkCertificate();
+  }
+}
+
+async function checkCertificate() {
+  const section = document.getElementById('certificate-section');
+  if (!section) return;
+  try {
+    const { api } = await import('../api/client.js');
+    const data = await api.get(`/certificates/check/${productId}`, true);
+    if (data.eligible) {
+      section.style.display = 'block';
+      section.innerHTML = `
+        <div class="certificate-banner">
+          <div class="certificate-banner__icon">🏅</div>
+          <div class="certificate-banner__text">
+            <div class="certificate-banner__title">🎉 Chúc mừng! Bạn đã hoàn thành 100% khóa học!</div>
+            <div class="certificate-banner__desc">Nhận chứng chỉ hoàn thành để thêm vào CV của bạn</div>
+          </div>
+          <a href="/api/certificates/${productId}" target="_blank" class="btn btn-primary" style="white-space:nowrap;flex-shrink:0">
+            ⬇ Nhận chứng chỉ
+          </a>
+        </div>`;
+    }
+  } catch {}
 }
 
 window.toggleModule = (idx) => {
@@ -81,6 +109,11 @@ window.selectLesson = (mIdx, lIdx) => {
 
 function loadLesson(lesson) {
   currentLesson = lesson;
+
+  // Cập nhật AI Tutor context
+  import('../components/ai-tutor.js').then(m => {
+    if (m.setAIContext) m.setAIContext(`Bài học: "${lesson.title}" trong khóa học "${courseData?.name}"`);
+  }).catch(() => {});
 
   // Update active state in sidebar
   document.querySelectorAll('.sidebar-lesson').forEach(el => el.classList.remove('active'));
@@ -126,7 +159,11 @@ function setupVideoTracking() {
     try {
       await orderApi.updateProgress(currentLesson.lesson_id, Math.floor(video.duration), true);
       // Mark completed in sidebar
-      document.getElementById(`lesson-item-${currentLesson.lesson_id}`)?.classList.add('completed');
+      const sidebarItem = document.getElementById(`lesson-item-${currentLesson.lesson_id}`);
+      if (sidebarItem) {
+        sidebarItem.classList.add('completed');
+        sidebarItem.querySelector('.sidebar-lesson__icon').textContent = '✅';
+      }
       currentLesson.progress = { completed: true };
       showToast('✅ Hoàn thành bài học!', 'success');
       updateOverallProgress(courseData.modules);
@@ -185,59 +222,3 @@ async function loadEbook() {
 }
 
 loadLearning();
-
-// ── AI Tutor Logic ──────────────────────────────────────────
-function setupAITutor() {
-  const btnOpen = document.getElementById('ai-tutor-btn');
-  const btnClose = document.getElementById('ai-tutor-close');
-  const windowEl = document.getElementById('ai-tutor-window');
-  const inputEl = document.getElementById('ai-tutor-input');
-  const btnSend = document.getElementById('ai-tutor-send');
-  const msgContainer = document.getElementById('ai-tutor-messages');
-
-  if (!btnOpen || !windowEl) return;
-
-  btnOpen.onclick = () => windowEl.classList.add('open');
-  btnClose.onclick = () => windowEl.classList.remove('open');
-
-  const sendMessage = async () => {
-    const text = inputEl.value.trim();
-    if (!text) return;
-    
-    // show user msg
-    addMessage(text, 'user');
-    inputEl.value = '';
-
-    // loading state
-    const loadingId = 'msg-' + Date.now();
-    addMessage('Mình đang suy nghĩ...', 'assistant', loadingId);
-
-    try {
-      const { api } = await import('../api/client.js');
-      const response = await api.post('/ai/chat', {
-        message: text,
-        product_id: productId,
-        context: currentLesson ? \`video_lesson: \${currentLesson.title}\` : ''
-      }, true);
-      
-      document.getElementById(loadingId).innerText = response.reply;
-    } catch(e) {
-      document.getElementById(loadingId).innerText = "Xin lỗi, đã có lỗi kết nối tới Server AI.";
-      document.getElementById(loadingId).style.color = "var(--color-error)";
-    }
-  };
-
-  btnSend.onclick = sendMessage;
-  inputEl.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-
-  function addMessage(text, role, id = '') {
-    const el = document.createElement('div');
-    el.className = \`message \${role}\`;
-    if (id) el.id = id;
-    el.innerText = text;
-    msgContainer.appendChild(el);
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-  }
-}
-
-setupAITutor();

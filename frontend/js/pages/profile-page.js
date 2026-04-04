@@ -152,3 +152,59 @@ async function loadMyOrders() {
     }
   } catch(e) { container.innerHTML = `<div style="color:var(--color-error)">${e.message}</div>`; }
 }
+
+// ── Wishlist ───────────────────────────────────────────────
+async function loadWishlist() {
+  const grid = document.getElementById('wishlist-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div class="loading-overlay"><div class="spinner"></div></div>';
+  try {
+    const items = await api.get('/wishlist', true);
+    if (!items || items.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--color-text-muted)">
+        <div style="font-size:3rem;margin-bottom:16px">💔</div>
+        <div style="font-size:1.1rem;font-weight:600;margin-bottom:8px">Chưa có sản phẩm yêu thích</div>
+        <p>Nhấn ❤️ trên bất kỳ sản phẩm nào để lưu vào danh sách này</p>
+        <a href="/products/list.html" class="btn btn-primary" style="margin-top:20px">Khám phá khóa học</a>
+      </div>`;
+      return;
+    }
+    grid.innerHTML = items.map(item => {
+      const pct = item.original_price && item.original_price > item.price
+        ? Math.round((1 - item.price / item.original_price) * 100) : 0;
+      return `
+        <div class="my-course-card" onclick="location.href='/products/detail.html?id=${item.product_id}'" style="cursor:pointer">
+          <div style="position:relative">
+            <img src="${item.thumbnail_url || `https://via.placeholder.com/640x360/1a1a35/6366f1?text=${encodeURIComponent(item.name)}`}"
+                 alt="${item.name}" style="width:100%;height:140px;object-fit:cover;border-radius:12px 12px 0 0">
+            ${pct > 0 ? `<span class="badge badge-error" style="position:absolute;top:8px;right:8px">-${pct}%</span>` : ''}
+          </div>
+          <div style="padding:16px">
+            <div style="font-size:0.75rem;color:var(--color-text-muted);margin-bottom:4px">${item.category?.name || ''}</div>
+            <div style="font-weight:700;font-size:0.95rem;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${item.name}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-weight:700;color:var(--color-accent-light)">${formatPrice(item.price)}</div>
+              <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); removeWishlist(${item.product_id}, this)">
+                ✕ Xóa
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = `<div style="color:var(--color-error)">Lỗi: ${e.message}</div>`;
+  }
+}
+
+window.removeWishlist = async (productId, btn) => {
+  try {
+    await api.delete(`/wishlist/${productId}`, true);
+    showToast('Đã xóa khỏi yêu thích', 'info');
+    loadWishlist();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+};
+
+// Wire wishlist tab
+document.getElementById('nav-wishlist')?.addEventListener('click', () => loadWishlist());

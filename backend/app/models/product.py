@@ -46,6 +46,7 @@ class Product(Base):
     # One-to-one
     ebook = relationship("Ebook", back_populates="product", uselist=False)
     course = relationship("Course", back_populates="product", uselist=False)
+    wishlists = relationship("Wishlist", back_populates="product")
 
 
 class Ebook(Base):

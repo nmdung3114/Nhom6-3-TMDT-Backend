@@ -45,6 +45,57 @@ def get_stats(
     )
 
 
+@router.get("/stats/revenue-chart")
+def revenue_chart(
+    days: int = 7,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Doanh thu theo ngày (7 hoặc 30 ngày)."""
+    from datetime import timedelta
+    from app.models.order import Payment
+    days = min(max(days, 7), 30)
+    result = []
+    for i in range(days - 1, -1, -1):
+        day = date.today() - timedelta(days=i)
+        start = datetime.combine(day, datetime.min.time())
+        end = datetime.combine(day, datetime.max.time())
+        revenue = db.query(func.sum(Payment.amount)).filter(
+            Payment.status == "success",
+            Payment.paid_at >= start,
+            Payment.paid_at <= end,
+        ).scalar() or Decimal("0")
+        result.append({
+            "date": day.strftime("%d/%m"),
+            "revenue": float(revenue),
+        })
+    return result
+
+
+@router.get("/stats/top-products")
+def top_products(
+    limit: int = 5,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Top sản phẩm theo số học viên."""
+    from app.models.product import Product
+    products = db.query(Product).filter(
+        Product.status == "active"
+    ).order_by(Product.total_enrolled.desc()).limit(limit).all()
+    return [
+        {
+            "product_id": p.product_id,
+            "name": p.name,
+            "total_enrolled": p.total_enrolled or 0,
+            "average_rating": float(p.average_rating or 0),
+            "product_type": p.product_type,
+        }
+        for p in products
+    ]
+
+
+
 # ── Users ──────────────────────────────────────────────────
 @router.get("/users", response_model=UserListResponse)
 def list_users(

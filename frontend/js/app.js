@@ -24,58 +24,94 @@ export function initApp() {
   import('./components/footer.js').then(m => m.renderFooter());
   if (AppState.token) loadCartCount();
   setupVoiceSearch();
+  // Global features — AI Tutor & Notifications
+  window.addEventListener('DOMContentLoaded', () => {
+    import('./components/ai-tutor.js').then(m => m.initAITutor()).catch(() => {});
+    if (AppState.token) {
+      import('./components/notifications.js').then(m => m.initNotifications()).catch(() => {});
+    }
+  });
 }
 
 // ── Voice Search ───────────────────────────────────────────
 function setupVoiceSearch() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    console.warn("Trình duyệt không hỗ trợ Web Speech API.");
-    return;
-  }
-  
+
   window.addEventListener('DOMContentLoaded', () => {
     const micBtn = document.getElementById('voice-search-btn');
     const searchInput = document.getElementById('search-input');
-    if(!micBtn || !searchInput) return;
+    if (!micBtn) return;
+
+    if (!SpeechRecognition) {
+      micBtn.title = 'Trình duyệt không hỗ trợ tìm kiếm giọng nói';
+      micBtn.style.opacity = '0.4';
+      return;
+    }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'vi-VN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-
+    let overlay = null;
     let isListening = false;
 
-    micBtn.addEventListener('click', () => {
-      if (isListening) {
+    function showVoiceOverlay() {
+      overlay = document.createElement('div');
+      overlay.className = 'voice-overlay';
+      overlay.id = 'voice-overlay';
+      overlay.innerHTML = `
+        <div class="voice-overlay-icon">🎤</div>
+        <div class="voice-overlay-text">Đang lắng nghe...</div>
+        <div class="voice-overlay-hint">Hãy nói to và rõ tên khóa học bạn muốn tìm</div>
+        <button class="voice-cancel-btn" id="voice-cancel">✕ Hủy</button>`;
+      document.body.appendChild(overlay);
+      document.getElementById('voice-cancel')?.addEventListener('click', () => {
         recognition.stop();
-        return;
-      }
-      recognition.start();
+      });
+      window._voiceRecognition = recognition;
+    }
+
+    function hideVoiceOverlay() {
+      overlay?.remove();
+      overlay = null;
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (isListening) { recognition.stop(); return; }
+      try { recognition.start(); } catch {}
     });
 
     recognition.onstart = () => {
       isListening = true;
       micBtn.classList.add('listening');
-      searchInput.placeholder = "Đang lắng nghe...";
+      showVoiceOverlay();
     };
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      searchInput.value = transcript;
-      // Tự động chuyển trang search
-      location.href = `/products/list.html?search=${encodeURIComponent(transcript)}`;
+      hideVoiceOverlay();
+      if (searchInput) searchInput.value = transcript;
+      const currentUrl = location.pathname;
+      if (currentUrl.includes('/products/list')) {
+        const url = new URL(location.href);
+        url.searchParams.set('search', transcript);
+        location.href = url.toString();
+      } else {
+        location.href = `/products/list.html?search=${encodeURIComponent(transcript)}`;
+      }
     };
 
     recognition.onerror = (event) => {
-      console.error("Lỗi nhận diện:", event.error);
-      showToast("Không nhận diện được giọng nói", "error");
+      hideVoiceOverlay();
+      if (event.error !== 'aborted' && event.error !== 'no-speech') {
+        showToast('⚠️ Không nhận diện được giọng nói. Vui lòng thử lại.', 'error');
+      }
     };
 
     recognition.onend = () => {
       isListening = false;
       micBtn.classList.remove('listening');
-      searchInput.placeholder = "Tìm kiếm khóa học, ebook...";
+      hideVoiceOverlay();
     };
   });
 }
@@ -213,6 +249,11 @@ export function renderProductCard(product) {
           <span class="badge badge-accent">${typeLabel}</span>
         </div>
         ${discount > 0 ? `<div class="product-card__discount"><span class="badge badge-error">-${discount}%</span></div>` : ''}
+        <div class="wishlist-btn-wrap">
+          <button class="wishlist-btn" id="wl-${product.product_id}"
+            onclick="event.stopPropagation(); toggleWishlist(${product.product_id}, this)"
+            title="Yêu thích">❤️</button>
+        </div>
       </div>
       <div class="product-card__body">
         <div class="product-card__category">${product.category?.name || 'Khóa học'}</div>
@@ -247,6 +288,26 @@ window.addToCart = async function(productId) {
     showToast('Đã thêm vào giỏ hàng! 🛒', 'success');
   } catch(e) {
     showToast(e.message || 'Không thể thêm vào giỏ hàng', 'error');
+  }
+};
+
+// ── Wishlist toggle ────────────────────────────────────────
+window.toggleWishlist = async function(productId, btn) {
+  if (!requireAuth(true)) return;
+  const isActive = btn.classList.contains('active');
+  try {
+    const { api } = await import('./api/client.js');
+    if (isActive) {
+      await api.delete(`/wishlist/${productId}`, true);
+      btn.classList.remove('active');
+      showToast('Đã xóa khỏi yêu thích', 'info');
+    } else {
+      await api.post(`/wishlist/${productId}`, {}, true);
+      btn.classList.add('active');
+      showToast('Đã thêm vào yêu thích ❤️', 'success');
+    }
+  } catch(e) {
+    showToast(e.message || 'Lỗi', 'error');
   }
 };
 

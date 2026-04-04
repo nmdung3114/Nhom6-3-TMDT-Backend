@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     MUX_SIGNING_KEY_ID: str = ""
     MUX_SIGNING_PRIVATE_KEY: str = ""
 
+    # Gemini AI
+    GEMINI_API_KEY: str = ""
+
     # CORS
     CORS_ORIGINS: str = "http://localhost,http://localhost:80,http://127.0.0.1"
 

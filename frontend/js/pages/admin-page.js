@@ -22,6 +22,95 @@ async function loadStats() {
   } catch(e) { showToast('Không tải được thống kê: ' + e.message, 'error'); }
 }
 
+// ── Charts ─────────────────────────────────────────────────
+async function loadCharts() {
+  if (!document.getElementById('revenue-chart')) return;
+  if (typeof Chart === 'undefined') return;
+
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+
+  try {
+    // Revenue chart
+    const revenueData = await api.get('/admin/stats/revenue-chart?days=7', true);
+    const revCanvas = document.getElementById('revenue-chart');
+    if (revCanvas) {
+      new Chart(revCanvas, {
+        type: 'line',
+        data: {
+          labels: revenueData.map(d => d.date),
+          datasets: [{
+            label: 'Doanh thu (đ)',
+            data: revenueData.map(d => d.revenue),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.12)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#6366f1',
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            fill: true,
+            tension: 0.4,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `  ${new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(ctx.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: {
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: {
+                callback: v => (v / 1000000).toFixed(1) + 'M'
+              }
+            }
+          }
+        }
+      });
+    }
+  } catch(e) { console.warn('Revenue chart error:', e); }
+
+  try {
+    // Top products chart
+    const topData = await api.get('/admin/stats/top-products?limit=5', true);
+    const topCanvas = document.getElementById('top-products-chart');
+    if (topCanvas && topData.length > 0) {
+      const colors = ['#6366f1','#a855f7','#ec4899','#f59e0b','#10b981'];
+      new Chart(topCanvas, {
+        type: 'bar',
+        data: {
+          labels: topData.map(p => p.name.length > 20 ? p.name.slice(0,20)+'…' : p.name),
+          datasets: [{
+            label: 'Học viên',
+            data: topData.map(p => p.total_enrolled),
+            backgroundColor: colors,
+            borderRadius: 8,
+            borderSkipped: false,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+    }
+  } catch(e) { console.warn('Top products chart error:', e); }
+}
+
+
 // ── Users ──────────────────────────────────────────────────
 async function loadUsers(page = 1) {
   const search  = document.getElementById('user-search')?.value || '';
@@ -303,7 +392,7 @@ function renderTablePagination(containerId, total, pageSize, current, loadFn) {
 }
 
 // ── Init based on page ─────────────────────────────────────
-if (PAGE === 'dashboard') loadStats();
+if (PAGE === 'dashboard') { loadStats(); loadCharts(); }
 if (PAGE === 'users')     { loadUsers(); setupSearchFilter('user-search', loadUsers); }
 if (PAGE === 'products')  { loadProducts(); setupSearchFilter('product-search', loadProducts); }
 if (PAGE === 'orders')    loadOrders();

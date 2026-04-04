@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/base/variables.css">
   <link rel="stylesheet" href="/css/base/base.css">
   <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/features.css">
   <link rel="stylesheet" href="/css/pages/pages-combined.css">
   <style>
     body { background: #05051a; overflow-x: hidden; }
@@ -74,30 +75,14 @@
             <button id="btn-prev" class="btn btn-secondary" disabled>← Bài trước</button>
             <button id="btn-next" class="btn btn-primary" disabled>Bài tiếp theo →</button>
           </div>
+          <!-- Certificate banner (shown when 100% complete) -->
+          <div id="certificate-section" style="display:none"></div>
         </div>
       </main>
     </div>
   </div>
 
-  <!-- AI Tutor Widget -->
-  <div class="ai-tutor-widget">
-    <button id="ai-tutor-btn" class="ai-tutor-btn" title="Hỏi AI Tutor">
-      ✨ Trợ lý AI
-    </button>
-    <div id="ai-tutor-window" class="ai-tutor-window">
-      <div class="ai-tutor-header">
-        <div class="ai-tutor-title">✨ AI Tutor</div>
-        <button id="ai-tutor-close" class="ai-tutor-close">✕</button>
-      </div>
-      <div id="ai-tutor-messages" class="ai-tutor-messages">
-        <div class="message assistant">Chào bạn, mình là AI Tutor. Mình có thể giúp gì cho bạn trong bài học này?</div>
-      </div>
-      <div class="ai-tutor-input-area">
-        <input type="text" id="ai-tutor-input" placeholder="Hỏi AI...">
-        <button id="ai-tutor-send">Gửi</button>
-      </div>
-    </div>
-  </div>
+  <!-- AI Tutor Widget handled globally by app.js -->
 
   <script type="module" src="/js/app.js"></script>
   <script type="module" src="/js/pages/learning-page.js"></script>

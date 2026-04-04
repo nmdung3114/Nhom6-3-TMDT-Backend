@@ -87,6 +87,24 @@ def vnpay_return(request: Request, db: Session = Depends(get_db)):
 
     order_id = result.get("order_id", 0)
     if result["success"]:
+        # Tạo thông báo cho user
+        try:
+            from app.models.notification import Notification
+            from app.models.order import Order as OrderModel
+            order_obj = db.query(OrderModel).filter(OrderModel.order_id == order_id).first()
+            if order_obj:
+                notif = Notification(
+                    user_id=order_obj.user_id,
+                    type="success",
+                    title="Thanh toán thành công! 🎉",
+                    message=f"Đơn hàng #{order_id} đã được thanh toán. Nội dung đã được mở khóa!",
+                    link=f"/orders/index.html?order_id={order_id}&status=success",
+                )
+                db.add(notif)
+                db.commit()
+        except Exception as e:
+            logger.warning(f"Could not create notification: {e}")
+
         return RedirectResponse(
             url=f"/orders/index.html?order_id={order_id}&status=success",
             status_code=302,
@@ -97,6 +115,7 @@ def vnpay_return(request: Request, db: Session = Depends(get_db)):
             url=f"/checkout/index.html?order_id={order_id}&status=failed&code={code}",
             status_code=302,
         )
+
 
 
 @router.get("/status/{order_id}")

@@ -26,3 +26,5 @@ class User(Base):
     access_list = relationship("UserAccess", back_populates="user")
     progress_list = relationship("LearningProgress", back_populates="user")
     products = relationship("Product", foreign_keys="Product.author_id", back_populates="author")
+    wishlists = relationship("Wishlist", back_populates="user")
+    notifications = relationship("Notification", back_populates="user")
