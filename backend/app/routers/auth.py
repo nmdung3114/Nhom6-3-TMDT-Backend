@@ -8,7 +8,8 @@ from app.core.exceptions import ConflictException, UnauthorizedException, BadReq
 from app.models.user import User
 from app.dependencies import get_current_user
 from pydantic import BaseModel
-import httpx
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -93,41 +94,36 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-# ── Real Google OAuth ───────────────────────────────────────
+# ── Real Google OAuth ─────────────────────────────────────
 class GoogleTokenRequest(BaseModel):
     id_token: str
 
 @router.post("/google", response_model=TokenResponse)
-async def google_login(body: GoogleTokenRequest, db: Session = Depends(get_db)):
+def google_login(body: GoogleTokenRequest, db: Session = Depends(get_db)):
     """
     Verify a Google ID token from the frontend (Google Identity Services).
-    Calls Google's tokeninfo endpoint to validate and extract user info.
+    Uses the official google-auth library for secure verification.
     """
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.get(
-            "https://oauth2.googleapis.com/tokeninfo",
-            params={"id_token": body.id_token}
+    try:
+        info = google_id_token.verify_oauth2_token(
+            body.id_token,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=10,
         )
+    except ValueError as e:
+        raise UnauthorizedException(f"Token Google không hợp lệ: {str(e)}")
 
-    if resp.status_code != 200:
-        raise UnauthorizedException("Token Google không hợp lệ")
-
-    info = resp.json()
-
-    # Verify it was issued for our app
-    if info.get("aud") != GOOGLE_CLIENT_ID:
-        raise UnauthorizedException("Token không thuộc ứng dụng này")
-
-    google_sub  = info.get("sub")          # unique Google user ID
-    email       = info.get("email")
-    name        = info.get("name") or email.split("@")[0]
-    avatar_url  = info.get("picture")
-    email_verified = info.get("email_verified") == "true"
+    google_sub   = info.get("sub")
+    email        = info.get("email")
+    email_verified = info.get("email_verified", False)
+    name         = info.get("name") or info.get("given_name") or (email.split("@")[0] if email else "User")
+    avatar_url   = info.get("picture")
 
     if not email or not email_verified:
         raise BadRequestException("Email Google chưa được xác minh")
 
-    # Find existing user by oauth_id or email
+    # Find existing user by google_sub or email
     user = (
         db.query(User).filter(User.oauth_provider == "google", User.oauth_id == google_sub).first()
         or db.query(User).filter(User.email == email).first()
@@ -135,8 +131,10 @@ async def google_login(body: GoogleTokenRequest, db: Session = Depends(get_db)):
 
     if user:
         # Update OAuth fields if not set
-        user.oauth_provider = "google"
-        user.oauth_id = google_sub
+        if not user.oauth_provider:
+            user.oauth_provider = "google"
+        if not user.oauth_id:
+            user.oauth_id = google_sub
         if avatar_url and not user.avatar_url:
             user.avatar_url = avatar_url
         db.commit()

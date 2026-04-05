@@ -5,6 +5,7 @@ from app.models.cart import Cart, CartItem
 from app.models.course import LearningProgress
 from app.models.wishlist import Wishlist
 from app.models.notification import Notification
+from app.models.blog import BlogPost, BlogComment
 
 __all__ = [
     "User",
@@ -14,4 +15,5 @@ __all__ = [
     "LearningProgress",
     "Wishlist",
     "Notification",
+    "BlogPost", "BlogComment",
 ]

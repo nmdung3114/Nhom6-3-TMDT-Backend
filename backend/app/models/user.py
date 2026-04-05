@@ -28,3 +28,5 @@ class User(Base):
     products = relationship("Product", foreign_keys="Product.author_id", back_populates="author")
     wishlists = relationship("Wishlist", back_populates="user")
     notifications = relationship("Notification", back_populates="user")
+    blog_posts = relationship("BlogPost", back_populates="author", foreign_keys="BlogPost.user_id")
+    blog_comments = relationship("BlogComment", back_populates="author", foreign_keys="BlogComment.user_id")

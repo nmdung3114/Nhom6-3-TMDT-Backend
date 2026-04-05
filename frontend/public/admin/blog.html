@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý Blog - Admin ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/features.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+  <link rel="stylesheet" href="/css/pages/blog.css">
+</head>
+<body data-page="blog">
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Admin Navbar -->
+  <nav class="navbar" id="navbar" style="z-index:200">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__brand">
+        <div class="navbar__brand-icon">🎓</div>
+        <span class="navbar__brand-text">ELearnVN</span>
+        <span style="font-size:0.7rem;background:var(--color-error-bg);color:var(--color-error);padding:2px 8px;border-radius:4px;margin-left:4px;font-weight:700">ADMIN</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:12px">
+        <a href="/" class="btn btn-ghost btn-sm">🏠 Xem trang web</a>
+        <button class="btn btn-secondary btn-sm" onclick="app.logout()">🚪 Đăng xuất</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="admin-page">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar__section-title">Tổng quan</div>
+      <a href="/admin/dashboard.html" class="admin-nav-item"><span class="admin-icon">📊</span> Dashboard</a>
+
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Quản lý</div>
+      <a href="/admin/users.html" class="admin-nav-item"><span class="admin-icon">👥</span> Người dùng</a>
+      <a href="/admin/products.html" class="admin-nav-item"><span class="admin-icon">📚</span> Sản phẩm</a>
+      <a href="/admin/orders.html" class="admin-nav-item"><span class="admin-icon">📦</span> Đơn hàng</a>
+      <a href="/admin/coupons.html" class="admin-nav-item"><span class="admin-icon">🏷</span> Mã giảm giá</a>
+      <a href="/admin/blog.html" class="admin-nav-item active"><span class="admin-icon">✍️</span> Blog</a>
+
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Hệ thống</div>
+      <a href="/api/docs" target="_blank" class="admin-nav-item"><span class="admin-icon">📖</span> API Docs</a>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">✍️ Quản lý Blog</h1>
+        <p class="admin-header__subtitle">Kiểm soát nội dung bài viết và bình luận</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="blog-admin-tabs">
+        <button class="blog-admin-tab active" id="tab-posts" onclick="switchTab('posts')">📝 Bài viết</button>
+        <button class="blog-admin-tab" id="tab-comments" onclick="switchTab('comments')">💬 Bình luận</button>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="admin-search" placeholder="🔍 Tìm kiếm..." style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:8px;padding:8px 14px;color:var(--color-text-primary);font-size:0.875rem;width:220px">
+        <select id="admin-status-filter" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:8px;padding:8px 12px;color:var(--color-text-primary);font-size:0.875rem">
+          <option value="">Tất cả trạng thái</option>
+          <option value="published">Đã xuất bản</option>
+          <option value="hidden">Đã ẩn</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="applyFilter()">Lọc</button>
+        <span id="admin-total-badge" style="margin-left:auto;font-size:0.85rem;color:var(--color-text-muted)"></span>
+      </div>
+
+      <!-- Posts tab -->
+      <div id="panel-posts">
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="posts-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tiêu đề</th>
+                <th>Tác giả</th>
+                <th>Ngày đăng</th>
+                <th>Bình luận</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="posts-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted)"><div class="spinner spinner-sm" style="display:inline-block;margin-right:8px"></div>Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="posts-pagination" class="blog-pagination" style="margin-top:16px"></div>
+      </div>
+
+      <!-- Comments tab -->
+      <div id="panel-comments" style="display:none">
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="comments-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nội dung</th>
+                <th>Tác giả</th>
+                <th>Bài viết</th>
+                <th>Ngày</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="comments-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted)"><div class="spinner spinner-sm" style="display:inline-block;margin-right:8px"></div>Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="comments-pagination" class="blog-pagination" style="margin-top:16px"></div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module">
+    import { AppState, showToast } from '/js/app.js';
+    import { api } from '/js/api/client.js';
+
+    // Auth guard
+    window.addEventListener('load', () => {
+      if (!AppState.user || AppState.user.role !== 'admin') {
+        showToast('Chỉ admin mới có quyền truy cập', 'error');
+        setTimeout(() => location.href = '/', 1200);
+      }
+    });
+
+    let currentTab = 'posts';
+    let postPage = 1, commentPage = 1;
+
+    window.switchTab = function(tab) {
+      currentTab = tab;
+      document.getElementById('panel-posts').style.display = tab === 'posts' ? '' : 'none';
+      document.getElementById('panel-comments').style.display = tab === 'comments' ? '' : 'none';
+      document.getElementById('tab-posts').classList.toggle('active', tab === 'posts');
+      document.getElementById('tab-comments').classList.toggle('active', tab === 'comments');
+
+      // Update filter options for comments
+      const sel = document.getElementById('admin-status-filter');
+      if (tab === 'comments') {
+        sel.innerHTML = `<option value="">Tất cả trạng thái</option><option value="visible">Hiển thị</option><option value="hidden">Đã ẩn</option>`;
+      } else {
+        sel.innerHTML = `<option value="">Tất cả trạng thái</option><option value="published">Đã xuất bản</option><option value="hidden">Đã ẩn</option>`;
+      }
+
+      if (tab === 'posts') loadPosts(1);
+      else loadComments(1);
+    };
+
+    window.applyFilter = function() {
+      if (currentTab === 'posts') loadPosts(1);
+      else loadComments(1);
+    };
+
+    function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fmtDate(iso) { return new Date(iso).toLocaleDateString('vi-VN'); }
+
+    function statusBadge(status, type = 'post') {
+      if (type === 'post') {
+        return status === 'published'
+          ? `<span style="color:#22c55e;font-weight:600;font-size:0.78rem">● Xuất bản</span>`
+          : `<span style="color:#ef4444;font-weight:600;font-size:0.78rem">● Đã ẩn</span>`;
+      } else {
+        return status === 'visible'
+          ? `<span style="color:#22c55e;font-weight:600;font-size:0.78rem">● Hiển thị</span>`
+          : `<span style="color:#ef4444;font-weight:600;font-size:0.78rem">● Đã ẩn</span>`;
+      }
+    }
+
+    function renderPagination(containerId, page, total_pages, loadFn) {
+      const c = document.getElementById(containerId);
+      if (total_pages <= 1) { c.innerHTML = ''; return; }
+      let html = `<button class="page-btn" ${page===1?'disabled':''} data-p="${page-1}">‹</button>`;
+      for (let i = 1; i <= total_pages; i++)
+        html += `<button class="page-btn ${i===page?'active':''}" data-p="${i}">${i}</button>`;
+      html += `<button class="page-btn" ${page===total_pages?'disabled':''} data-p="${page+1}">›</button>`;
+      c.innerHTML = html;
+      c.querySelectorAll('.page-btn:not([disabled])').forEach(btn =>
+        btn.addEventListener('click', () => loadFn(parseInt(btn.dataset.p)))
+      );
+    }
+
+    async function loadPosts(page = 1) {
+      postPage = page;
+      const search = document.getElementById('admin-search').value.trim();
+      const status = document.getElementById('admin-status-filter').value;
+      const params = new URLSearchParams({ page, limit: 20 });
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+
+      try {
+        const data = await api.get(`/admin/blog/posts?${params}`, true);
+        document.getElementById('admin-total-badge').textContent = `Tổng: ${data.total} bài`;
+        const tbody = document.getElementById('posts-tbody');
+
+        if (!data.items.length) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted)">Không có bài viết nào</td></tr>`;
+          document.getElementById('posts-pagination').innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = data.items.map(p => `
+          <tr>
+            <td style="font-weight:600;color:var(--color-text-muted)">#${p.post_id}</td>
+            <td>
+              <a href="/blog/post.html?id=${p.post_id}" target="_blank"
+                 style="color:var(--color-text-primary);text-decoration:none;font-weight:600;
+                        display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:280px">
+                ${escHtml(p.title)}
+              </a>
+            </td>
+            <td style="font-size:0.875rem">${escHtml(p.author.name)}</td>
+            <td style="font-size:0.8rem;color:var(--color-text-muted)">${fmtDate(p.created_at)}</td>
+            <td style="text-align:center">💬 ${p.comment_count}</td>
+            <td>${statusBadge(p.status, 'post')}</td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                ${p.status === 'published'
+                  ? `<button class="btn btn-sm btn-secondary" onclick="togglePostStatus(${p.post_id},'hidden')">🙈 Ẩn</button>`
+                  : `<button class="btn btn-sm btn-secondary" onclick="togglePostStatus(${p.post_id},'published')">👁 Hiện</button>`
+                }
+                <button class="btn btn-sm btn-danger" onclick="deletePost(${p.post_id})">🗑️</button>
+              </div>
+            </td>
+          </tr>`).join('');
+
+        renderPagination('posts-pagination', data.page, data.total_pages, loadPosts);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function loadComments(page = 1) {
+      commentPage = page;
+      const status = document.getElementById('admin-status-filter').value;
+      const params = new URLSearchParams({ page, limit: 20 });
+      if (status) params.set('status', status);
+
+      try {
+        const data = await api.get(`/admin/blog/comments?${params}`, true);
+        document.getElementById('admin-total-badge').textContent = `Tổng: ${data.total} bình luận`;
+        const tbody = document.getElementById('comments-tbody');
+
+        if (!data.items.length) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted)">Không có bình luận nào</td></tr>`;
+          document.getElementById('comments-pagination').innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = data.items.map(c => `
+          <tr>
+            <td style="font-weight:600;color:var(--color-text-muted)">#${c.comment_id}</td>
+            <td style="font-size:0.87rem;max-width:260px;word-break:break-word">${escHtml(c.content.substring(0,120))}${c.content.length>120?'…':''}</td>
+            <td style="font-size:0.875rem">${escHtml(c.author.name)}</td>
+            <td style="font-size:0.8rem">
+              <a href="/blog/post.html?id=${c.post_id}" target="_blank"
+                 style="color:var(--color-accent-light);text-decoration:none">#${c.post_id} ${escHtml(c.post_title.substring(0,30))}${c.post_title.length>30?'…':''}</a>
+            </td>
+            <td style="font-size:0.8rem;color:var(--color-text-muted)">${fmtDate(c.created_at)}</td>
+            <td>${statusBadge(c.status, 'comment')}</td>
+            <td>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                ${c.status === 'visible'
+                  ? `<button class="btn btn-sm btn-secondary" onclick="toggleCommentStatus(${c.comment_id},'hidden')">🙈 Ẩn</button>`
+                  : `<button class="btn btn-sm btn-secondary" onclick="toggleCommentStatus(${c.comment_id},'visible')">👁 Hiện</button>`
+                }
+                <button class="btn btn-sm btn-danger" onclick="deleteComment(${c.comment_id})">🗑️</button>
+              </div>
+            </td>
+          </tr>`).join('');
+
+        renderPagination('comments-pagination', data.page, data.total_pages, loadComments);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    window.togglePostStatus = async function(postId, status) {
+      try {
+        await api.patch(`/admin/blog/posts/${postId}/status`, { status }, true);
+        showToast(`Đã ${status === 'hidden' ? 'ẩn' : 'hiện'} bài viết`, 'success');
+        loadPosts(postPage);
+      } catch (err) { showToast(err.message, 'error'); }
+    };
+
+    window.deletePost = async function(postId) {
+      if (!confirm('Xóa bài viết này? Hành động không thể hoàn tác.')) return;
+      try {
+        await api.delete(`/admin/blog/posts/${postId}`, true);
+        showToast('Đã xóa bài viết', 'success');
+        loadPosts(postPage);
+      } catch (err) { showToast(err.message, 'error'); }
+    };
+
+    window.toggleCommentStatus = async function(commentId, status) {
+      try {
+        await api.patch(`/admin/blog/comments/${commentId}/status`, { status }, true);
+        showToast(`Đã ${status === 'hidden' ? 'ẩn' : 'hiện'} bình luận`, 'success');
+        loadComments(commentPage);
+      } catch (err) { showToast(err.message, 'error'); }
+    };
+
+    window.deleteComment = async function(commentId) {
+      if (!confirm('Xóa bình luận này?')) return;
+      try {
+        await api.delete(`/admin/blog/comments/${commentId}`, true);
+        showToast('Đã xóa bình luận', 'success');
+        loadComments(commentPage);
+      } catch (err) { showToast(err.message, 'error'); }
+    };
+
+    // Initial load
+    loadPosts(1);
+
+    // Search on Enter
+    document.getElementById('admin-search').addEventListener('keydown', e => {
+      if (e.key === 'Enter') applyFilter();
+    });
+  </script>
+</body>
+</html>

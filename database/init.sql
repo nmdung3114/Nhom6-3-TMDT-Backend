@@ -220,3 +220,33 @@ CREATE TABLE IF NOT EXISTS learning_progress (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- Blog Posts
+CREATE TABLE IF NOT EXISTS blog_posts (
+    post_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    title VARCHAR(300) NOT NULL,
+    content TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'published',  -- published | hidden
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_blog_status (status),
+    INDEX idx_blog_user (user_id),
+    INDEX idx_blog_created (created_at)
+) ENGINE=InnoDB;
+
+-- Blog Comments
+CREATE TABLE IF NOT EXISTS blog_comments (
+    comment_id INT PRIMARY KEY AUTO_INCREMENT,
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'visible',    -- visible | hidden
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES blog_posts(post_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_comment_post (post_id),
+    INDEX idx_comment_status (status)
+) ENGINE=InnoDB;
+

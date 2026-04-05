@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi tiết bài viết - ELearnVN</title>
+  <meta name="description" content="Đọc bài viết từ cộng đồng ELearnVN">
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/pages/blog.css">
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner" id="navbar-inner"></div>
+  </nav>
+
+  <main class="blog-page">
+    <div class="post-detail-page" id="post-detail-container">
+
+      <!-- Back link -->
+      <a href="/blog/" class="post-detail__back">← Quay lại Blog</a>
+
+      <!-- Cover banner (hidden until image loads) -->
+      <div class="post-cover-banner" id="post-cover-banner" style="display:none">
+        <img src="" alt="Ảnh bìa bài viết" id="post-cover-img">
+      </div>
+
+      <!-- Skeletons while loading -->
+      <div id="post-content-skeleton">
+        <div class="post-content-card">
+          <div class="skeleton" style="height:40px;margin-bottom:20px;border-radius:10px"></div>
+          <div class="skeleton" style="height:20px;width:50%;margin-bottom:32px;border-radius:8px"></div>
+          <div class="skeleton" style="height:200px;border-radius:12px"></div>
+        </div>
+      </div>
+
+      <!-- Post content -->
+      <div id="post-content" style="display:none">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Actions (owner / admin) -->
+      <div id="post-actions" class="post-detail__actions" style="display:none">
+        <button class="btn btn-sm btn-danger" id="btn-delete-post">🗑️ Xóa bài viết</button>
+      </div>
+
+      <!-- Comments -->
+      <section class="comments-section" id="comments-section" style="display:none">
+        <h2 class="comments-section__title">💬 Bình luận <span id="comment-count" style="font-size:0.95rem;color:var(--color-text-muted)"></span></h2>
+
+        <!-- Comment form (logged in) -->
+        <div class="comment-form" id="comment-form-wrapper" style="display:none">
+          <div class="comment-form__user-row" id="comment-user-row">
+            <!-- Avatar + name filled by JS -->
+          </div>
+          <textarea id="comment-input" placeholder="Viết bình luận của bạn..."></textarea>
+          <div class="comment-form__footer">
+            <button class="btn btn-primary btn-sm" id="btn-submit-comment">💬 Gửi bình luận</button>
+          </div>
+        </div>
+
+        <!-- Not logged in -->
+        <div id="login-to-comment" class="login-to-comment" style="display:none">
+          <span>💬</span>
+          <span><a href="/auth/login.html" style="color:var(--color-accent-light);font-weight:600">Đăng nhập</a> để tham gia bình luận</span>
+        </div>
+
+        <!-- Comments list -->
+        <div id="comments-list"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="footer-root"></div>
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/blog-post.js"></script>
+</body>
+</html>

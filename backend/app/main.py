@@ -9,7 +9,7 @@ from app.config import settings
 from app.core.middleware import ProcessTimeMiddleware, SecurityHeadersMiddleware
 from app.core.exceptions import AppException
 from app.routers import auth, users, products, cart, orders, learning, payment, admin, ai
-from app.routers import wishlist, notifications, certificates
+from app.routers import wishlist, notifications, certificates, blog
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -58,9 +58,14 @@ app.include_router(ai.router)
 app.include_router(wishlist.router)
 app.include_router(notifications.router)
 app.include_router(certificates.router)
+app.include_router(blog.router)
 
 # ── Upload dir ─────────────────────────────────────────────
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+os.makedirs(os.path.join(settings.UPLOAD_DIR, "blog"), exist_ok=True)
+
+# Serve uploaded files as static
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 # ── Health ─────────────────────────────────────────────────
 @app.get("/api/health")

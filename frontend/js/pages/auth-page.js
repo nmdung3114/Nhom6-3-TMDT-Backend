@@ -87,13 +87,11 @@ async function handleGoogleCredential(credentialResponse) {
     return;
   }
 
-  // Show loading state on button
-  const btn = document.getElementById('btn-google-login');
-  if (btn) {
-    btn.style.opacity = '0.7';
-    btn.style.pointerEvents = 'none';
-    btn.innerHTML = '⏳ Đang xử lý...';
-  }
+  // Disable GSI container to prevent double-click
+  const container = document.getElementById('google-signin-container');
+  if (container) container.style.pointerEvents = 'none';
+
+  showToast('⏳ Đang xác thực tài khoản Google...', 'info');
 
   try {
     const { api } = await import('../api/client.js');
@@ -103,21 +101,16 @@ async function handleGoogleCredential(credentialResponse) {
     setTimeout(() => {
       const redirect = getQueryParam('redirect') || (data.role === 'admin' ? '/admin/dashboard.html' : '/');
       location.href = redirect;
-    }, 600);
+    }, 700);
   } catch (err) {
     showToast('Đăng nhập Google thất bại: ' + err.message, 'error');
-    // Restore button
-    if (btn) {
-      btn.style.opacity = '';
-      btn.style.pointerEvents = '';
-      btn.innerHTML = '<img src="https://www.google.com/favicon.ico" alt="Google" style="width:18px"> Tiếp tục với Google';
-    }
+    if (container) container.style.pointerEvents = '';
   }
 }
 
 function initGoogleSignIn() {
   if (!window.google?.accounts?.id) {
-    // Retry until GSI loads
+    // Retry until GSI script loads
     setTimeout(initGoogleSignIn, 300);
     return;
   }
@@ -130,21 +123,15 @@ function initGoogleSignIn() {
     ux_mode: 'popup',
   });
 
-  // Bind button click to trigger Google popup
-  const googleBtn = document.getElementById('btn-google-login');
-  if (googleBtn) {
-    googleBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // One Tap not available — use renderButton fallback
-          window.google.accounts.id.renderButton(
-            document.getElementById('google-btn-container') || googleBtn.parentElement,
-            { theme: 'outline', size: 'large', width: '100%' }
-          );
-          showToast('Vui lòng chọn tài khoản Google trong popup', 'info');
-        }
-      });
+  // Render the official Google button directly into the container
+  const container = document.getElementById('google-signin-container');
+  if (container) {
+    window.google.accounts.id.renderButton(container, {
+      theme: 'outline',
+      size: 'large',
+      width: container.offsetWidth || 340,
+      text: 'continue_with',
+      locale: 'vi',
     });
   }
 }

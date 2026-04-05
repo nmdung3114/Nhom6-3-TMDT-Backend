@@ -81,6 +81,7 @@ export function renderNavbar() {
     <nav class="navbar__nav">
       <a href="/products/list.html" class="navbar__nav-link">📚 <span>Khóa học</span></a>
       <a href="/products/list.html?type=ebook" class="navbar__nav-link">📖 <span>Ebook</span></a>
+      <a href="/blog/index.html" class="navbar__nav-link">✍️ <span>Blog</span></a>
       <button id="theme-toggle" class="theme-toggle" title="Đổi chủ đề sáng/tối" aria-label="Đổi chủ đề">🌙</button>
       ${!AppState.user ? `
         <a href="/auth/login.html" class="btn btn-sm btn-secondary">Đăng nhập</a>
