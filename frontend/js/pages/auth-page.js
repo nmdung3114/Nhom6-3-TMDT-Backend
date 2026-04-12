@@ -1,7 +1,8 @@
 import { authApi } from '../api/auth.js';
 import { saveAuth, showToast, AppState, getQueryParam } from '../app.js';
 
-const GOOGLE_CLIENT_ID = '769838445738-qbev0l32b0namp6pq4cea7d41suhsll7.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '798650741088-9nn9rleehvi8b77vsnod78nr6hvvo4sc.apps.googleusercontent.com';
+const FACEBOOK_APP_ID = 'YOUR_FACEBOOK_APP_ID'; // Sẽ cập nhật sau khi có App ID
 
 // Redirect if already logged in
 if (AppState.token && AppState.user) {
@@ -150,7 +151,68 @@ function loadGSI() {
 
 loadGSI();
 
-// ── Facebook OAuth (placeholder — requires HTTPS) ───────────
-document.getElementById('btn-facebook-login')?.addEventListener('click', () => {
-  showToast('Đăng nhập Facebook cần HTTPS. Hiện chưa hỗ trợ ở localhost.', 'info');
+// ── Facebook OAuth ──────────────────────────────────────────
+function loadFacebookSDK() {
+  if (document.getElementById('fb-sdk-script')) return;
+  
+  // FB SDK requires this global init function
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId: FACEBOOK_APP_ID,
+      cookie: true,
+      xfbml: false,
+      version: 'v19.0',
+    });
+  };
+
+  const script = document.createElement('script');
+  script.id = 'fb-sdk-script';
+  script.src = 'https://connect.facebook.net/vi_VN/sdk.js';
+  script.async = true;
+  script.defer = true;
+  document.head.appendChild(script);
+}
+
+async function handleFacebookLogin() {
+  if (typeof FB === 'undefined') {
+    showToast('Facebook SDK đang tải, vui lòng thử lại...', 'info');
+    return;
+  }
+
+  FB.login(function(response) {
+    if (response.authResponse) {
+      const accessToken = response.authResponse.accessToken;
+      sendFacebookTokenToBackend(accessToken);
+    } else {
+      showToast('Đăng nhập Facebook bị hủy.', 'info');
+    }
+  }, { scope: 'email,public_profile' });
+}
+
+async function sendFacebookTokenToBackend(accessToken) {
+  const btn = document.getElementById('btn-facebook-login');
+  if (btn) btn.style.pointerEvents = 'none';
+
+  showToast('⏳ Đang xác thực tài khoản Facebook...', 'info');
+
+  try {
+    const { api } = await import('../api/client.js');
+    const data = await api.post('/auth/facebook', { access_token: accessToken }, false);
+    saveAuth(data);
+    showToast(`Chào mừng, ${data.name}! 🎉`, 'success');
+    setTimeout(() => {
+      const redirect = getQueryParam('redirect') || (data.role === 'admin' ? '/admin/dashboard.html' : '/');
+      location.href = redirect;
+    }, 700);
+  } catch (err) {
+    showToast('Đăng nhập Facebook thất bại: ' + err.message, 'error');
+    if (btn) btn.style.pointerEvents = '';
+  }
+}
+
+document.getElementById('btn-facebook-login')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  handleFacebookLogin();
 });
+
+loadFacebookSDK();

@@ -33,21 +33,27 @@ function _createWidget() {
           <div class="ai-widget-name">AI Tutor — ELearnVN</div>
           <div class="ai-widget-status">Sẵn sàng hỗ trợ</div>
         </div>
-        <button class="ai-widget-close" id="ai-widget-close" title="Đóng">✕</button>
+        <button class="ai-widget-close" id="ai-widget-close" title="Đóng">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div id="ai-widget-messages" class="ai-widget-messages">
         <div class="ai-msg assistant">
-          👋 Xin chào! Mình là AI Tutor của ELearnVN. Bạn có thể hỏi mình bất kỳ câu hỏi nào về lập trình, khóa học, hay nội dung đang học nhé!
+          👋 Xin chào! Mình là <strong>AI Tutor</strong> của ELearnVN. Bạn có thể hỏi mình bất kỳ điều gì về lập trình hoặc khóa học nhé!
         </div>
       </div>
       <div class="ai-widget-input-area">
-        <input class="ai-widget-input" id="ai-widget-input"
-               type="text" placeholder="Nhập câu hỏi của bạn...">
-        <button class="ai-widget-send" id="ai-widget-send" title="Gửi">➤</button>
+        <div class="ai-widget-input-wrapper">
+          <input class="ai-widget-input" id="ai-widget-input"
+                 type="text" placeholder="Hỏi AI Tutor..." autocomplete="off">
+          <button class="ai-widget-send" id="ai-widget-send" title="Gửi">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
       </div>
     </div>
     <button class="ai-widget-toggle" id="ai-widget-toggle" title="Trợ lý AI">
-      ✨
+      <span style="font-size: 1.8rem">✨</span>
       <span class="ai-badge" id="ai-badge" style="display:none">1</span>
     </button>
   `;
@@ -149,7 +155,7 @@ function _addLoadingMessage(id) {
   const el = document.createElement('div');
   el.className = 'ai-msg loading';
   el.id = id;
-  el.textContent = 'Đang trả lời';
+  el.innerHTML = '<div class="ai-typing-indicator"><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div><div class="ai-typing-dot"></div></div>';
   messages.appendChild(el);
   messages.scrollTop = messages.scrollHeight;
 }

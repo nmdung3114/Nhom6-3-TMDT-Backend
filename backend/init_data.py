@@ -7,6 +7,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import engine, SessionLocal, Base
+from sqlalchemy import text
 from app.models import *  # import all models
 from app.core.security import get_password_hash
 from app.models.user import User
@@ -20,6 +21,16 @@ time.sleep(5)
 
 print("📦 Creating tables...")
 Base.metadata.create_all(bind=engine)
+
+# ── Auto-migrations ───────────────────────────────────────
+print("🔄 Running migrations...")
+with engine.connect() as conn:
+    try:
+        conn.execute(text("ALTER TABLE users MODIFY COLUMN avatar_url MEDIUMTEXT"))
+        conn.commit()
+        print("✅ Migration: avatar_url → MEDIUMTEXT")
+    except Exception:
+        pass  # Already migrated or column doesn't exist yet
 
 db = SessionLocal()
 

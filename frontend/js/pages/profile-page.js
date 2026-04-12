@@ -6,7 +6,7 @@ import { AppState, requireAuth, showToast, formatPrice, formatDate, renderProduc
 if (!requireAuth()) throw new Error('Auth required');
 
 // ── Tab navigation ─────────────────────────────────────────
-const tabs = ['my-courses', 'profile-info', 'change-password', 'my-orders'];
+const tabs = ['my-courses', 'profile-info', 'change-password', 'my-orders', 'wishlist'];
 
 function activateTab(tabId) {
   tabs.forEach(t => {
@@ -15,6 +15,7 @@ function activateTab(tabId) {
   });
   if (tabId === 'my-courses') loadMyCourses();
   if (tabId === 'my-orders')  loadMyOrders();
+  if (tabId === 'wishlist')   loadWishlist();
 }
 
 document.querySelectorAll('.profile-nav-item').forEach(el => {
@@ -26,20 +27,84 @@ const hash = location.hash.replace('#', '') || 'my-courses';
 activateTab(tabs.includes(hash) ? hash : 'my-courses');
 
 // ── User info ──────────────────────────────────────────────
+function setAvatarImage(el, url, fallbackName) {
+  if (!el) return;
+  if (url) {
+    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover"><div class="avatar-upload-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.45);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;color:white;font-size:1.2rem">📷</div>`;
+  } else {
+    el.innerHTML = `${(fallbackName || 'U').charAt(0).toUpperCase()}<div class="avatar-upload-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.45);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;color:white;font-size:1.2rem">📷</div>`;
+  }
+}
+
 function loadUserInfo() {
   const u = AppState.user;
   if (!u) return;
   document.getElementById('profile-name').textContent = u.name;
   document.getElementById('profile-email').textContent = u.email;
-  document.getElementById('profile-avatar-letter').textContent = u.name?.charAt(0).toUpperCase();
   document.getElementById('info-name').value = u.name || '';
   document.getElementById('info-email').value = u.email || '';
   document.getElementById('info-phone').value = u.phone || '';
-  if (u.avatar_url) {
-    document.getElementById('profile-avatar-letter').innerHTML = `<img src="${u.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
-  }
+
+  // Update both avatar elements
+  setAvatarImage(document.getElementById('profile-avatar-letter'), u.avatar_url, u.name);
+  setAvatarImage(document.getElementById('info-avatar-preview'), u.avatar_url, u.name);
 }
 loadUserInfo();
+
+// ── Avatar upload ──────────────────────────────────────────
+document.getElementById('avatar-input')?.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Validate client-side
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+    showToast('Chỉ chấp nhận file ảnh (JPG, PNG, WebP, GIF)', 'error');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Ảnh không được vượt quá 2MB', 'error');
+    return;
+  }
+
+  // Show instant preview
+  const previewUrl = URL.createObjectURL(file);
+  setAvatarImage(document.getElementById('profile-avatar-letter'), previewUrl, AppState.user?.name);
+  setAvatarImage(document.getElementById('info-avatar-preview'), previewUrl, AppState.user?.name);
+
+  const status = document.getElementById('avatar-status');
+  if (status) { status.style.display = 'block'; status.textContent = 'Đang tải lên...'; status.style.color = 'var(--color-accent)'; }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('el_token');
+    const res = await fetch('/api/users/avatar', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Upload thất bại');
+    }
+
+    const updated = await res.json();
+    AppState.user.avatar_url = updated.avatar_url;
+    localStorage.setItem('el_user', JSON.stringify(AppState.user));
+    loadUserInfo();
+    showToast('Đã cập nhật ảnh đại diện', 'success');
+    if (status) { status.textContent = 'Cập nhật thành công!'; status.style.color = 'var(--color-success)'; setTimeout(() => status.style.display = 'none', 3000); }
+  } catch (err) {
+    showToast(err.message, 'error');
+    loadUserInfo(); // Revert preview
+    if (status) { status.textContent = 'Lỗi: ' + err.message; status.style.color = 'var(--color-error)'; }
+  } finally {
+    URL.revokeObjectURL(previewUrl);
+    e.target.value = ''; // Reset input
+  }
+});
 
 // ── Profile form ───────────────────────────────────────────
 document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
@@ -207,5 +272,3 @@ window.removeWishlist = async (productId, btn) => {
   }
 };
 
-// Wire wishlist tab
-document.getElementById('nav-wishlist')?.addEventListener('click', () => loadWishlist());

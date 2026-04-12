@@ -26,6 +26,15 @@ class Settings(BaseSettings):
     VNPAY_URL: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
     VNPAY_RETURN_URL: str = "http://localhost/api/payment/vnpay-return"
 
+    # PayPal Sandbox
+    PAYPAL_CLIENT_ID: str = "ARoevRyCbe2QsWaAiz8Ld1ZkNVCgP8Yx5LzvRwfmXZjH1uHcpFyASAiRw_aiqxley4VJWjsKG62GpLLE"
+    PAYPAL_CLIENT_SECRET: str = "ENsq-AKEERyTzga8Oo5kzmPNi313YuYmml9GqrkAuxAWGUkvQcZHp_PdJmoToEZvZN1mBlNbSQc_U0T5"
+    PAYPAL_BASE_URL: str = "https://api-m.sandbox.paypal.com"
+    PAYPAL_RETURN_URL: str = "http://localhost/api/payment/paypal-return"
+    PAYPAL_CANCEL_URL: str = "http://localhost/checkout/index.html"
+    PAYPAL_VND_RATE: float = 26000.0  # 1 USD = 26,000 VND (sandbox mock rate)
+
+
     # Mux
     MUX_TOKEN_ID: str = ""
     MUX_TOKEN_SECRET: str = ""

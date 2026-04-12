@@ -8,7 +8,6 @@ from datetime import datetime
 class BlogPostCreate(BaseModel):
     title: str
     content: str
-    cover_image_url: Optional[str] = None
 
 
 class BlogAuthorInfo(BaseModel):
@@ -23,7 +22,6 @@ class BlogPostListItem(BaseModel):
     post_id: int
     title: str
     content_preview: str          # first ~200 chars
-    cover_image_url: Optional[str] = None
     status: str
     created_at: datetime
     author: BlogAuthorInfo
@@ -43,7 +41,6 @@ class BlogPostResponse(BaseModel):
     post_id: int
     title: str
     content: str
-    cover_image_url: Optional[str] = None
     status: str
     created_at: datetime
     updated_at: datetime

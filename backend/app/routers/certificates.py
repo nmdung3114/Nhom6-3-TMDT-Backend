@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
+from app.core.timezone import now_vn
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
@@ -206,7 +207,7 @@ def get_certificate(
     if not product:
         raise NotFoundException("Khóa học không tồn tại")
 
-    date_str = datetime.now().strftime("%d/%m/%Y")
+    date_str = now_vn().strftime("%d/%m/%Y")
     image_bytes = _generate_certificate_image(
         user_name=current_user.name,
         course_name=product.name,

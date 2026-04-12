@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/css/components/header.css">
   <link rel="stylesheet" href="/css/components/button.css">
   <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/form.css">
   <link rel="stylesheet" href="/css/components/features.css">
   <link rel="stylesheet" href="/css/pages/pages-combined.css">
   <link rel="stylesheet" href="/css/pages/blog.css">
@@ -63,61 +64,81 @@
       </div>
 
       <!-- Filter bar -->
-      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="admin-search" placeholder="🔍 Tìm kiếm..." style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:8px;padding:8px 14px;color:var(--color-text-primary);font-size:0.875rem;width:220px">
-        <select id="admin-status-filter" style="background:var(--color-bg-card);border:1px solid var(--color-border);border-radius:8px;padding:8px 12px;color:var(--color-text-primary);font-size:0.875rem">
+      <div style="display:flex;gap:12px;margin-bottom:24px;align-items:center;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <div class="input-wrapper">
+            <span class="input-icon">🔍</span>
+            <input type="text" id="admin-search" class="form-control" placeholder="Tìm kiếm bài viết hoặc bình luận...">
+          </div>
+        </div>
+        <select id="admin-status-filter" class="sort-select">
           <option value="">Tất cả trạng thái</option>
           <option value="published">Đã xuất bản</option>
           <option value="hidden">Đã ẩn</option>
         </select>
-        <button class="btn btn-secondary btn-sm" onclick="applyFilter()">Lọc</button>
-        <span id="admin-total-badge" style="margin-left:auto;font-size:0.85rem;color:var(--color-text-muted)"></span>
+        <button class="btn btn-primary" onclick="applyFilter()">Lọc / Tìm</button>
       </div>
 
       <!-- Posts tab -->
       <div id="panel-posts">
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="posts-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tiêu đề</th>
-                <th>Tác giả</th>
-                <th>Ngày đăng</th>
-                <th>Bình luận</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="posts-tbody">
-              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted)"><div class="spinner spinner-sm" style="display:inline-block;margin-right:8px"></div>Đang tải...</td></tr>
-            </tbody>
-          </table>
+        <div class="data-table-wrap">
+          <div class="data-table-header">
+            <div class="data-table-title">Danh sách bài viết <span id="posts-total-badge" style="font-size:0.85rem;color:var(--color-text-muted);font-weight:normal;margin-left:8px"></span></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table" id="posts-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tiêu đề</th>
+                  <th>Tác giả</th>
+                  <th>Ngày đăng</th>
+                  <th>Bình luận</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="posts-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="data-table-footer">
+            <span></span>
+            <div id="posts-pagination" class="pagination-controls"></div>
+          </div>
         </div>
-        <div id="posts-pagination" class="blog-pagination" style="margin-top:16px"></div>
       </div>
 
       <!-- Comments tab -->
       <div id="panel-comments" style="display:none">
-        <div class="admin-table-wrap">
-          <table class="admin-table" id="comments-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nội dung</th>
-                <th>Tác giả</th>
-                <th>Bài viết</th>
-                <th>Ngày</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="comments-tbody">
-              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted)"><div class="spinner spinner-sm" style="display:inline-block;margin-right:8px"></div>Đang tải...</td></tr>
-            </tbody>
-          </table>
+        <div class="data-table-wrap">
+          <div class="data-table-header">
+            <div class="data-table-title">Danh sách bình luận <span id="comments-total-badge" style="font-size:0.85rem;color:var(--color-text-muted);font-weight:normal;margin-left:8px"></span></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table" id="comments-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nội dung</th>
+                  <th>Tác giả</th>
+                  <th>Bài viết</th>
+                  <th>Ngày</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="comments-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="data-table-footer">
+            <span></span>
+            <div id="comments-pagination" class="pagination-controls"></div>
+          </div>
         </div>
-        <div id="comments-pagination" class="blog-pagination" style="margin-top:16px"></div>
       </div>
     </main>
   </div>
@@ -200,7 +221,7 @@
 
       try {
         const data = await api.get(`/admin/blog/posts?${params}`, true);
-        document.getElementById('admin-total-badge').textContent = `Tổng: ${data.total} bài`;
+        document.getElementById('posts-total-badge').textContent = `- Tổng: ${data.total}`;
         const tbody = document.getElementById('posts-tbody');
 
         if (!data.items.length) {
@@ -248,7 +269,7 @@
 
       try {
         const data = await api.get(`/admin/blog/comments?${params}`, true);
-        document.getElementById('admin-total-badge').textContent = `Tổng: ${data.total} bình luận`;
+        document.getElementById('comments-total-badge').textContent = `- Tổng: ${data.total}`;
         const tbody = document.getElementById('comments-tbody');
 
         if (!data.items.length) {

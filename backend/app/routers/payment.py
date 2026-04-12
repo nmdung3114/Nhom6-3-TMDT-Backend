@@ -9,10 +9,13 @@ from app.models.order import Order, Payment
 from app.models.cart import Cart, CartItem
 from app.services.vnpay_service import create_payment_url
 from app.services.payment_service import process_vnpay_return
+from app.services.paypal_service import create_paypal_order, capture_paypal_order
 from app.core.exceptions import NotFoundException, BadRequestException
 from app.dependencies import get_current_user
 from app.models.user import User
+from app.core.timezone import now_vn
 from decimal import Decimal
+
 
 logger = logging.getLogger(__name__)
 
@@ -87,20 +90,18 @@ def vnpay_return(request: Request, db: Session = Depends(get_db)):
 
     order_id = result.get("order_id", 0)
     if result["success"]:
-        # Tạo thông báo cho user
+        # Gửi thông báo cho user + admin
         try:
-            from app.models.notification import Notification
             from app.models.order import Order as OrderModel
+            from app.services.notification_service import notify_payment_success
             order_obj = db.query(OrderModel).filter(OrderModel.order_id == order_id).first()
             if order_obj:
-                notif = Notification(
+                notify_payment_success(
+                    db,
+                    order_id=order_id,
                     user_id=order_obj.user_id,
-                    type="success",
-                    title="Thanh toán thành công! 🎉",
-                    message=f"Đơn hàng #{order_id} đã được thanh toán. Nội dung đã được mở khóa!",
-                    link=f"/orders/index.html?order_id={order_id}&status=success",
+                    amount=float(order_obj.total_amount),
                 )
-                db.add(notif)
                 db.commit()
         except Exception as e:
             logger.warning(f"Could not create notification: {e}")
@@ -138,3 +139,141 @@ def get_payment_status(
         "paid_at": payment.paid_at,
         "amount": payment.amount,
     }
+
+
+# ── PayPal Sandbox ────────────────────────────────────────────────────────────
+
+@router.post("/paypal/create/{order_id}")
+def create_paypal_payment(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Tạo PayPal order và trả về approve_url để redirect user sang PayPal sandbox."""
+    order = db.query(Order).filter(
+        Order.order_id == order_id,
+        Order.user_id == current_user.user_id,
+    ).first()
+    if not order:
+        raise NotFoundException("Đơn hàng không tồn tại")
+    if order.status == "paid":
+        raise BadRequestException("Đơn hàng đã được thanh toán")
+    if order.status == "cancelled":
+        order.status = "pending"
+        db.commit()
+
+    try:
+        result = create_paypal_order(order_id, float(order.total_amount))
+    except Exception as e:
+        logger.error(f"PayPal create order error: {e}")
+        raise BadRequestException(f"Không thể tạo PayPal order: {str(e)}")
+
+    # Lưu paypal_order_id vào payment record (tái dùng cột vnpay_txn_ref)
+    payment = db.query(Payment).filter(Payment.order_id == order_id).first()
+    if payment:
+        payment.method = "paypal"
+        payment.vnpay_txn_ref = result["paypal_order_id"]
+        db.commit()
+
+    # Clear cart
+    cart = db.query(Cart).filter(Cart.user_id == current_user.user_id).first()
+    if cart:
+        db.query(CartItem).filter(CartItem.cart_id == cart.cart_id).delete()
+        db.commit()
+
+    logger.info(f"PayPal order created for order #{order_id}: {result['paypal_order_id']}")
+    return {
+        "approve_url": result["approve_url"],
+        "paypal_order_id": result["paypal_order_id"],
+        "usd_amount": result["usd_amount"],
+        "order_id": order_id,
+    }
+
+
+@router.get("/paypal-return")
+def paypal_return(
+    order_id: int,
+    token: str,          # PayPal đặt tên param là "token" (= PayPal order ID)
+    PayerID: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """
+    PayPal redirect callback sau khi user approve trên sandbox.
+    PayPal tự append: ?token=<paypal_order_id>&PayerID=<payer_id>
+    """
+    logger.info(f"PayPal return: order_id={order_id}, paypal_token={token}, PayerID={PayerID}")
+
+    order = db.query(Order).filter(Order.order_id == order_id).first()
+    if not order:
+        return RedirectResponse(
+            url=f"/checkout/index.html?order_id={order_id}&status=failed&code=not_found",
+            status_code=302,
+        )
+
+    if order.status == "paid":
+        return RedirectResponse(
+            url=f"/orders/index.html?order_id={order_id}&status=success",
+            status_code=302,
+        )
+
+    try:
+        result = capture_paypal_order(token)
+    except Exception as e:
+        logger.error(f"PayPal capture error: {e}")
+        if order.payment:
+            order.payment.status = "failed"
+            order.payment.method = "paypal"
+        order.status = "cancelled"
+        db.commit()
+        return RedirectResponse(
+            url=f"/checkout/index.html?order_id={order_id}&status=failed&code=capture_failed",
+            status_code=302,
+        )
+
+    payment = db.query(Payment).filter(Payment.order_id == order_id).first()
+
+    if result["success"]:
+        order.status = "paid"
+        order.updated_at = now_vn()
+        if payment:
+            payment.status = "success"
+            payment.method = "paypal"
+            payment.transaction_id = result["capture_id"]
+            payment.paid_at = now_vn()
+            payment.amount = order.total_amount  # giữ VND gốc
+
+        # Cấp quyền truy cập
+        from app.services.payment_service import _grant_access
+        _grant_access(db, order)
+        db.commit()
+
+        # Thông báo
+        try:
+            from app.services.notification_service import notify_payment_success
+            notify_payment_success(
+                db,
+                order_id=order_id,
+                user_id=order.user_id,
+                amount=float(order.total_amount),
+            )
+            db.commit()
+        except Exception as e:
+            logger.warning(f"Notification error: {e}")
+
+        logger.info(f"PayPal payment SUCCESS: order #{order_id}, capture={result['capture_id']}")
+        return RedirectResponse(
+            url=f"/orders/index.html?order_id={order_id}&status=success",
+            status_code=302,
+        )
+    else:
+        order.status = "cancelled"
+        if payment:
+            payment.status = "failed"
+            payment.method = "paypal"
+        db.commit()
+        logger.warning(f"PayPal capture NOT COMPLETED: {result}")
+        return RedirectResponse(
+            url=f"/checkout/index.html?order_id={order_id}&status=failed&code=paypal_failed",
+            status_code=302,
+        )
+

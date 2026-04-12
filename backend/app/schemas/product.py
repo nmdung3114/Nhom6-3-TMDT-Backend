@@ -135,6 +135,17 @@ class ProductUpdate(BaseModel):
     status: Optional[str] = None
     category_id: Optional[int] = None
 
+    # Course-specific
+    duration: Optional[int] = None
+    level: Optional[str] = None
+    requirements: Optional[str] = None
+    what_you_learn: Optional[str] = None
+
+    # Ebook-specific
+    file_size: Optional[Decimal] = None
+    format: Optional[str] = None
+    page_count: Optional[int] = None
+
 
 class ReviewCreate(BaseModel):
     rating: int

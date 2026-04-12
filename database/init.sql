@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(20),
     role VARCHAR(20) NOT NULL DEFAULT 'learner',   -- learner | admin | author
     status VARCHAR(20) NOT NULL DEFAULT 'active',  -- active | suspended
-    avatar_url VARCHAR(500),
+    avatar_url MEDIUMTEXT,
     oauth_provider VARCHAR(50),                    -- google | facebook | null
     oauth_id VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

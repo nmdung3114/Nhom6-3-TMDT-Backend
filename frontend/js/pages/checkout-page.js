@@ -41,32 +41,62 @@ function renderOrder(order) {
   document.getElementById('co-order-id').textContent = `#${order.order_id}`;
 
   if (order.status === 'paid') {
-    // Đơn đã thanh toán: redirect ngay về trang đơn hàng
     location.replace(`/orders/index.html?status=success&order_id=${orderId}`);
     return;
   }
 }
 
-// Payment method selection
+// ── Payment method selection ────────────────────────────────
 let selectedMethod = 'vnpay';
-document.querySelectorAll('.payment-method').forEach(el => {
-  el.addEventListener('click', () => {
-    document.querySelectorAll('.payment-method').forEach(e => e.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedMethod = el.dataset.method;
+
+function updateMethodUI(method) {
+  selectedMethod = method;
+
+  // Update card states
+  document.querySelectorAll('.payment-method').forEach(el => {
+    const isSelected = el.dataset.method === method;
+    el.classList.toggle('selected', isSelected);
+    const radio = el.querySelector('.method-radio');
+    if (radio) radio.textContent = isSelected ? '●' : '○';
   });
+
+  // Update button label
+  const btn = document.getElementById('pay-btn');
+  const note = document.getElementById('paypal-note');
+  if (method === 'paypal') {
+    btn.textContent = ' Thanh toán với PayPal';
+    if (note) note.style.display = 'block';
+  } else {
+    btn.textContent = ' Thanh toán với VNPay';
+    if (note) note.style.display = 'none';
+  }
+}
+
+document.querySelectorAll('.payment-method').forEach(el => {
+  el.addEventListener('click', () => updateMethodUI(el.dataset.method));
 });
 
+// ── Pay button ──────────────────────────────────────────────
 document.getElementById('pay-btn')?.addEventListener('click', async () => {
   const btn = document.getElementById('pay-btn');
   btn.classList.add('loading');
+  btn.disabled = true;
+
   try {
-    const result = await orderApi.createPayment(orderId, null);
-    showToast('Đang chuyển hướng đến cổng thanh toán VNPay...', 'info');
-    setTimeout(() => { window.location.href = result.payment_url; }, 800);
+    if (selectedMethod === 'paypal') {
+      showToast('Đang kết nối PayPal Sandbox...', 'info');
+      const result = await orderApi.createPaypalPayment(orderId);
+      showToast('Đang chuyển hướng đến PayPal...', 'info');
+      setTimeout(() => { window.location.href = result.approve_url; }, 600);
+    } else {
+      showToast('Đang chuyển hướng đến cổng thanh toán VNPay...', 'info');
+      const result = await orderApi.createPayment(orderId, null);
+      setTimeout(() => { window.location.href = result.payment_url; }, 800);
+    }
   } catch(e) {
-    showToast(e.message, 'error');
+    showToast(e.message || 'Có lỗi xảy ra, vui lòng thử lại', 'error');
     btn.classList.remove('loading');
+    btn.disabled = false;
   }
 });
 

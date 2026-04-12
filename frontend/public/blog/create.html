@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Viết bài mới - ELearnVN</title>
-  <meta name="description" content="Chia sẻ kiến thức với cộng đồng ELearnVN — Viết bài, cập nhật kinh nghiệm">
   <link rel="stylesheet" href="/css/base/reset.css">
   <link rel="stylesheet" href="/css/base/variables.css">
   <link rel="stylesheet" href="/css/base/base.css">
@@ -15,43 +14,17 @@
 </head>
 <body>
   <div id="toast-container" class="toast-container"></div>
-  <nav class="navbar" id="navbar">
-    <div class="navbar-inner" id="navbar-inner"></div>
-  </nav>
+  <nav class="navbar" id="navbar"></nav>
 
   <main class="blog-page">
     <div class="create-post-page">
-
       <!-- Back -->
       <a href="/blog/" class="post-detail__back">← Quay lại Blog</a>
 
-      <!-- Hero heading -->
-      <div class="create-post-hero">
-        <div class="create-post-hero__icon">✍️</div>
-        <div class="create-post-hero__text">
-          <h1>Viết bài mới</h1>
-          <p>Chia sẻ kiến thức, kinh nghiệm với cộng đồng ELearnVN</p>
-        </div>
-      </div>
-
       <div class="create-post-card">
+        <div class="create-post-card__title">✏️ Viết bài mới</div>
+
         <form id="create-post-form">
-
-          <!-- Cover image upload -->
-          <div class="form-group">
-            <label class="form-label">🖼️ Ảnh bìa bài viết <span style="color:var(--color-text-muted);font-weight:400">(tuỳ chọn)</span></label>
-            <div class="cover-upload-area" id="cover-upload-area">
-              <input type="file" id="cover-file-input" accept="image/jpeg,image/png,image/webp,image/gif" title="Chọn ảnh bìa">
-              <img src="" alt="Ảnh bìa preview" class="cover-upload__preview" id="cover-preview">
-              <div class="cover-upload__placeholder" id="cover-placeholder">
-                <span class="cover-upload__placeholder-icon">🖼️</span>
-                <div class="cover-upload__placeholder-text">Nhấn để tải lên ảnh bìa</div>
-                <div class="cover-upload__placeholder-hint">Hỗ trợ JPG, PNG, WebP · Tối đa 5MB</div>
-              </div>
-              <button type="button" class="cover-remove-btn" id="cover-remove-btn">✕ Xoá ảnh</button>
-            </div>
-          </div>
-
           <!-- Title -->
           <div class="form-group">
             <label class="form-label">Tiêu đề bài viết <span class="required">*</span></label>
@@ -59,7 +32,7 @@
               type="text"
               id="post-title"
               name="title"
-              placeholder="Nhập tiêu đề hấp dẫn..."
+              placeholder="Nhập tiêu đề bài viết..."
               maxlength="300"
               required
               autocomplete="off"
@@ -91,11 +64,9 @@
           <div id="create-error" class="form-error" style="display:none;margin-top:12px">❌ <span></span></div>
         </form>
       </div>
-
     </div>
   </main>
 
-  <div id="footer-root"></div>
   <script type="module" src="/js/app.js"></script>
   <script type="module" src="/js/pages/blog-create.js"></script>
 </body>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.user import UserResponse, UserUpdate
@@ -7,6 +7,7 @@ from app.core.security import verify_password, get_password_hash
 from app.core.exceptions import BadRequestException
 from app.models.user import User
 from app.dependencies import get_current_user
+import base64
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -33,6 +34,39 @@ def update_profile(
     return current_user
 
 
+@router.post("/avatar", response_model=UserResponse)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # Validate file type
+    allowed_types = {
+        "image/jpeg": "jpeg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/gif": "gif",
+    }
+    if file.content_type not in allowed_types:
+        raise BadRequestException("Chỉ chấp nhận file ảnh (JPEG, PNG, WebP, GIF)")
+
+    # Read and validate size (max 2MB for base64 storage)
+    contents = await file.read()
+    if len(contents) > 2 * 1024 * 1024:
+        raise BadRequestException("Ảnh không được vượt quá 2MB")
+
+    # Convert to base64 data URL
+    b64 = base64.b64encode(contents).decode("utf-8")
+    mime = file.content_type
+    data_url = f"data:{mime};base64,{b64}"
+
+    # Update user avatar_url with data URL
+    current_user.avatar_url = data_url
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
 @router.post("/change-password")
 def change_password(
     data: ChangePasswordRequest,
@@ -48,3 +82,4 @@ def change_password(
     current_user.password_hash = get_password_hash(data.new_password)
     db.commit()
     return {"message": "Đổi mật khẩu thành công"}
+

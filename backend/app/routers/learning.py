@@ -3,6 +3,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from typing import Optional
+from app.core.timezone import now_vn
 from app.database import get_db
 from app.models.product import Product, Course, Module, Lesson, Ebook
 from app.models.order import UserAccess
@@ -129,13 +130,18 @@ def get_ebook_content(
     current_user: User = Depends(get_current_user),
 ):
     """Get ebook signed access URL."""
-    _check_access(db, current_user.user_id, product_id)
+    access = _check_access(db, current_user.user_id, product_id)
 
     product = db.query(Product).options(joinedload(Product.ebook)).filter(
         Product.product_id == product_id, Product.product_type == "ebook"
     ).first()
     if not product:
         raise NotFoundException("Ebook không tồn tại")
+
+    # Mark ebook as accessed (for refund eligibility check)
+    if access.accessed_at is None:
+        access.accessed_at = now_vn()
+        db.commit()
 
     download_url = get_ebook_access_url(product_id, current_user.user_id)
     return {
@@ -199,16 +205,16 @@ def update_progress(
         progress.watched_seconds = max(progress.watched_seconds or 0, watched_seconds)
         if completed and not progress.completed:
             progress.completed = True
-            progress.completed_at = datetime.now()
-        progress.updated_at = datetime.now()
+            progress.completed_at = now_vn()
+        progress.updated_at = now_vn()
     else:
         progress = LearningProgress(
             user_id=current_user.user_id,
             lesson_id=lesson_id,
             watched_seconds=watched_seconds,
             completed=completed,
-            completed_at=datetime.now() if completed else None,
-            updated_at=datetime.now(),
+            completed_at=now_vn() if completed else None,
+            updated_at=now_vn(),
         )
         db.add(progress)
     db.commit()

@@ -67,7 +67,7 @@ window.removeItem = async function(productId) {
 };
 
 // Coupon
-document.getElementById('btn-apply-coupon')?.addEventListener('click', async () => {
+async function applyCoupon() {
   const code = document.getElementById('coupon-input').value.trim().toUpperCase();
   if (!code) return;
   try {
@@ -80,6 +80,12 @@ document.getElementById('btn-apply-coupon')?.addEventListener('click', async () 
     couponApplied = null;
     document.getElementById('coupon-status').innerHTML = `<span class="text-error">❌ ${e.message}</span>`;
   }
+}
+
+document.getElementById('btn-apply-coupon')?.addEventListener('click', applyCoupon);
+// Enter in coupon input = apply immediately
+document.getElementById('coupon-input')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') applyCoupon();
 });
 
 // Checkout

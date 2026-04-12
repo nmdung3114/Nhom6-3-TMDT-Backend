@@ -75,6 +75,7 @@ class UserAccess(Base):
     product_id = Column(Integer, ForeignKey("products.product_id"), nullable=False)
     order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
     granted_at = Column(DateTime, server_default=func.now())
+    accessed_at = Column(DateTime, nullable=True)   # Ebook: set when user first opens
     revoked_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
 

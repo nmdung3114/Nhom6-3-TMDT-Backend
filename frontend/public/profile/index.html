@@ -25,29 +25,36 @@
         <!-- Sidebar -->
         <aside class="profile-sidebar">
           <div class="profile-avatar-wrap">
-            <div id="profile-avatar-letter" class="profile-avatar">U</div>
+            <div id="profile-avatar-letter" class="profile-avatar" style="position:relative;cursor:pointer" title="Nhấn để đổi ảnh đại diện" onclick="document.getElementById('avatar-input').click()">
+              U
+              <div class="avatar-upload-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.45);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;color:white;font-size:1.4rem">
+                📷
+              </div>
+            </div>
+            <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none">
+            <div id="avatar-status" style="font-size:0.75rem;color:var(--color-text-muted);margin-top:8px;display:none"></div>
             <div id="profile-name" class="profile-name">Đang tải...</div>
             <div id="profile-email" class="profile-email">--</div>
           </div>
           <nav class="profile-nav">
             <div class="profile-nav-item active" id="nav-my-courses" data-tab="my-courses">
-              🎓 Khóa học của tôi
+              Khóa học của tôi
             </div>
             <div class="profile-nav-item" id="nav-profile-info" data-tab="profile-info">
-              👤 Thông tin cá nhân
+              Thông tin cá nhân
             </div>
             <div class="profile-nav-item" id="nav-change-password" data-tab="change-password">
-              🔒 Đổi mật khẩu
+              Đổi mật khẩu
             </div>
             <div class="profile-nav-item" id="nav-my-orders" data-tab="my-orders">
-              📦 Đơn hàng gần đây
+              Đơn hàng gần đây
             </div>
             <div class="profile-nav-item" id="nav-wishlist" data-tab="wishlist">
-              ❤️ Yêu thích
+              Yêu thích
             </div>
             <div class="divider"></div>
             <div class="profile-nav-item" style="color:var(--color-error)" onclick="app.logout()">
-              🚪 Đăng xuất
+              Đăng xuất
             </div>
           </nav>
         </aside>
@@ -57,7 +64,7 @@
           <!-- My Courses Tab -->
           <div id="tab-my-courses" class="profile-section active">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-              <h2 class="profile-section__title" style="margin-bottom:0">🎓 Khóa học & Tài liệu của tôi</h2>
+              <h2 class="profile-section__title" style="margin-bottom:0">Khóa học & Tài liệu của tôi</h2>
               <a href="/products/list.html" class="btn btn-secondary btn-sm">+ Thêm khóa học</a>
             </div>
             <div id="my-courses-grid" class="my-courses-grid">
@@ -67,29 +74,34 @@
 
           <!-- Profile Info Tab -->
           <div id="tab-profile-info" class="profile-section">
-            <h2 class="profile-section__title">👤 Thông tin cá nhân</h2>
+            <h2 class="profile-section__title">Thông tin cá nhân</h2>
+
+            <!-- Avatar upload area -->
+            <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;padding:20px;background:var(--color-bg-secondary);border-radius:var(--radius-lg);border:1px solid var(--color-border)">
+              <div id="info-avatar-preview" class="profile-avatar" style="width:72px;height:72px;font-size:1.6rem;flex-shrink:0;cursor:pointer;position:relative" onclick="document.getElementById('avatar-input').click()" title="Đổi ảnh đại diện">
+                U
+                <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;color:white;font-size:1.1rem" class="avatar-upload-overlay">📷</div>
+              </div>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">Ảnh đại diện</div>
+                <div style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:8px">JPG, PNG hoặc WebP. Tối đa 2MB.</div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('avatar-input').click()">Chọn ảnh mới</button>
+              </div>
+            </div>
+
             <form id="profile-form">
               <div class="form-group">
                 <label class="form-label">Họ và tên</label>
-                <div class="input-wrapper">
-                  <span class="input-icon">👤</span>
-                  <input id="info-name" type="text" class="form-control" placeholder="Nguyễn Văn A">
-                </div>
+                <input id="info-name" type="text" class="form-control" placeholder="Nguyễn Văn A">
               </div>
               <div class="form-group">
                 <label class="form-label">Email</label>
-                <div class="input-wrapper">
-                  <span class="input-icon">📧</span>
-                  <input id="info-email" type="email" class="form-control" disabled style="opacity:0.6">
-                </div>
+                <input id="info-email" type="email" class="form-control" disabled style="opacity:0.6">
                 <div class="form-hint">Email không thể thay đổi</div>
               </div>
               <div class="form-group">
                 <label class="form-label">Số điện thoại</label>
-                <div class="input-wrapper">
-                  <span class="input-icon">📱</span>
-                  <input id="info-phone" type="tel" class="form-control" placeholder="0901234567">
-                </div>
+                <input id="info-phone" type="tel" class="form-control" placeholder="0901234567">
               </div>
               <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
             </form>
@@ -134,8 +146,6 @@
               <div class="loading-overlay"><div class="spinner"></div></div>
             </div>
           </div>
-          </div>
-
           <!-- Wishlist Tab -->
           <div id="tab-wishlist" class="profile-section">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">

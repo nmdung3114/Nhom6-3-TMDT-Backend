@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Optional
+from app.core.timezone import now_vn
 from app.models.order import Order, Payment, UserAccess
 from app.models.product import Product
 from app.services.vnpay_service import verify_vnpay_callback
@@ -30,11 +31,11 @@ def process_vnpay_return(db: Session, params: dict) -> dict:
     if result["is_success"]:
         # Update order status
         order.status = "paid"
-        order.updated_at = datetime.now()
+        order.updated_at = now_vn()
         # Update payment
         payment.status = "success"
         payment.transaction_id = result["transaction_id"]
-        payment.paid_at = datetime.now()
+        payment.paid_at = now_vn()
         payment.amount = result["amount"]
         payment.vnpay_response = result["raw_params"]
 
@@ -90,7 +91,7 @@ def revoke_access(db: Session, user_id: int, product_id: int):
     if not access:
         raise NotFoundException("Access record not found")
     access.is_active = False
-    access.revoked_at = datetime.now()
+    access.revoked_at = now_vn()
     db.commit()
 
 

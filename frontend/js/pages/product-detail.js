@@ -114,8 +114,8 @@ function renderActionArea(p) {
 
   area.innerHTML = `
     <button id="btn-add-cart" class="btn btn-primary btn-block btn-lg" onclick="addToCartPage()">🛒 Thêm vào giỏ hàng</button>
-    <button class="btn btn-secondary btn-block" style="margin-top:12px" onclick="buyNow()">⚡ Mua ngay</button>
-    <p style="text-align:center;color:var(--color-text-muted);font-size:0.75rem;margin-top:16px">🔒 Thanh toán bảo mật qua VNPay</p>`;
+    <button class="btn btn-secondary btn-block" style="margin-top:12px" onclick="buyNow()">⚡ Mua ngay</button>`;
+
 }
 
 function renderCurriculum(course) {

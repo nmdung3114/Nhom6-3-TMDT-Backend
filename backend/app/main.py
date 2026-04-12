@@ -62,9 +62,6 @@ app.include_router(blog.router)
 
 # ── Upload dir ─────────────────────────────────────────────
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-os.makedirs(os.path.join(settings.UPLOAD_DIR, "blog"), exist_ok=True)
-
-# Serve uploaded files as static
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 # ── Health ─────────────────────────────────────────────────

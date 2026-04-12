@@ -32,6 +32,8 @@ class PaymentResponse(BaseModel):
 class OrderResponse(BaseModel):
     order_id: int
     user_id: int
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
     coupon_code: Optional[str] = None
     subtotal: Decimal
     discount_amount: Decimal = Decimal("0")

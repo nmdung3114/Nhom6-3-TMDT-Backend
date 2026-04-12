@@ -8,7 +8,7 @@ export function renderFooter() {
         <!-- Brand Column -->
         <div>
           <div class="footer__brand">
-            <div class="footer__brand-icon">🎓</div>
+            <div class="footer__brand-icon">E</div>
             <span class="footer__brand-name">ELearnVN</span>
           </div>
           <p class="footer__desc">
@@ -31,7 +31,7 @@ export function renderFooter() {
           </div>
 
           <div class="footer__newsletter">
-            <div class="footer__newsletter-title">📬 Đăng ký nhận thông tin mới nhất</div>
+            <div class="footer__newsletter-title">Đăng ký nhận thông tin mới nhất</div>
             <div class="footer__newsletter-form">
               <input type="email" class="footer__newsletter-input" placeholder="Email của bạn...">
               <button class="footer__newsletter-btn">Đăng ký</button>
@@ -43,11 +43,11 @@ export function renderFooter() {
         <div>
           <div class="footer__col-title">Khóa học</div>
           <div class="footer__links">
-            <a href="/products/list.html?type=course" class="footer__link">→ Lập trình Web</a>
-            <a href="/products/list.html?type=course" class="footer__link">→ Data Science</a>
-            <a href="/products/list.html?type=course" class="footer__link">→ Mobile Dev</a>
-            <a href="/products/list.html?type=course" class="footer__link">→ UI/UX Design</a>
-            <a href="/products/list.html?type=course" class="footer__link">→ DevOps & Cloud</a>
+            <a href="/products/list.html?type=course" class="footer__link">Lập trình Web</a>
+            <a href="/products/list.html?type=course" class="footer__link">Data Science</a>
+            <a href="/products/list.html?type=course" class="footer__link">Mobile Dev</a>
+            <a href="/products/list.html?type=course" class="footer__link">UI/UX Design</a>
+            <a href="/products/list.html?type=course" class="footer__link">DevOps & Cloud</a>
           </div>
         </div>
 
@@ -55,11 +55,11 @@ export function renderFooter() {
         <div>
           <div class="footer__col-title">Ebook</div>
           <div class="footer__links">
-            <a href="/products/list.html?type=ebook" class="footer__link">→ Lập trình</a>
-            <a href="/products/list.html?type=ebook" class="footer__link">→ AI & Machine Learning</a>
-            <a href="/products/list.html?type=ebook" class="footer__link">→ Business</a>
-            <a href="/products/list.html?type=ebook" class="footer__link">→ Marketing</a>
-            <a href="/products/list.html?type=ebook" class="footer__link">→ Tài chính cá nhân</a>
+            <a href="/products/list.html?type=ebook" class="footer__link">Lập trình</a>
+            <a href="/products/list.html?type=ebook" class="footer__link">AI & Machine Learning</a>
+            <a href="/products/list.html?type=ebook" class="footer__link">Business</a>
+            <a href="/products/list.html?type=ebook" class="footer__link">Marketing</a>
+            <a href="/products/list.html?type=ebook" class="footer__link">Tài chính cá nhân</a>
           </div>
         </div>
 
@@ -67,11 +67,11 @@ export function renderFooter() {
         <div>
           <div class="footer__col-title">Hỗ trợ</div>
           <div class="footer__links">
-            <a href="#" class="footer__link">→ Trung tâm hỗ trợ</a>
-            <a href="#" class="footer__link">→ Điều khoản dịch vụ</a>
-            <a href="#" class="footer__link">→ Chính sách bảo mật</a>
-            <a href="#" class="footer__link">→ Hoàn tiền</a>
-            <a href="#" class="footer__link">→ Liên hệ chúng tôi</a>
+            <a href="#" class="footer__link">Trung tâm hỗ trợ</a>
+            <a href="#" class="footer__link">Điều khoản dịch vụ</a>
+            <a href="#" class="footer__link">Chính sách bảo mật</a>
+            <a href="#" class="footer__link">Hoàn tiền</a>
+            <a href="#" class="footer__link">Liên hệ chúng tôi</a>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export function renderFooter() {
         <div class="footer__badges">
           <span class="footer__badge">VNPay</span>
           <span class="footer__badge">SSL Secured</span>
-          <span class="footer__badge">Made in 🇻🇳</span>
+          <span class="footer__badge">Made in VN</span>
         </div>
       </div>
     </div>`;

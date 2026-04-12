@@ -2,7 +2,7 @@
  * Notifications Component — Chuông thông báo trên navbar
  * Hiển thị badge số chưa đọc, dropdown danh sách
  */
-import { AppState, showToast } from '../app.js';
+import { AppState, showToast, formatDate } from '../app.js';
 
 let pollInterval = null;
 
@@ -153,12 +153,5 @@ function _notifIcon(type) {
 }
 
 function _timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'Vừa xong';
-  if (m < 60) return `${m} phút trước`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h} giờ trước`;
-  return `${Math.floor(h / 24)} ngày trước`;
+  return formatDate(dateStr, true);
 }

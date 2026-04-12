@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, Text, func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -13,7 +13,7 @@ class User(Base):
     phone = Column(String(20), nullable=True)
     role = Column(String(20), nullable=False, default="learner")
     status = Column(String(20), nullable=False, default="active")
-    avatar_url = Column(String(500), nullable=True)
+    avatar_url = Column(Text, nullable=True)
     oauth_provider = Column(String(50), nullable=True)
     oauth_id = Column(String(255), nullable=True)
     created_at = Column(DateTime, server_default=func.now())

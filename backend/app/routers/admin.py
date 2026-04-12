@@ -4,13 +4,14 @@ from sqlalchemy import func
 from datetime import datetime, date
 from typing import Optional
 from decimal import Decimal
+from app.core.timezone import now_vn
 from app.database import get_db
 from app.schemas.user import UserResponse, UserAdminUpdate, UserListResponse
 from app.schemas.product import ProductCreate, ProductUpdate, ProductsListResponse, ProductListResponse
 from app.schemas.order import OrderResponse, OrderItemResponse, PaymentResponse, OrdersListResponse, AdminStatsResponse
 from app.schemas.cart import CartItemResponse
 from app.models.user import User
-from app.models.product import Product, Category, Course, Ebook, Module, Lesson
+from app.models.product import Product, Category, Course, Ebook, Module, Lesson, Review
 from app.models.order import Order, OrderItem, Payment, Coupon, UserAccess
 from app.core.exceptions import NotFoundException, BadRequestException, ConflictException
 from app.dependencies import require_admin
@@ -25,7 +26,8 @@ def get_stats(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    today = datetime.combine(date.today(), datetime.min.time())
+    today_vn = now_vn().date()
+    today = datetime.combine(today_vn, datetime.min.time())
     total_users = db.query(User).count()
     total_products = db.query(Product).filter(Product.status == "active").count()
     total_orders = db.query(Order).count()
@@ -57,7 +59,7 @@ def revenue_chart(
     from calendar import monthrange
     from app.models.order import Payment
 
-    today = date.today()
+    today = now_vn().date()
     result = []
 
     if period == 'week':
@@ -233,7 +235,11 @@ def admin_list_products(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    query = db.query(Product).options(joinedload(Product.category), joinedload(Product.author))
+    query = db.query(Product).options(
+        joinedload(Product.category), 
+        joinedload(Product.author),
+        joinedload(Product.course)
+    )
     if search:
         query = query.filter(Product.name.ilike(f"%{search}%"))
     if product_type:
@@ -253,6 +259,9 @@ def admin_list_products(
             total_enrolled=p.total_enrolled,
             category=p.category, author_name=p.author.name if p.author else None,
         )
+        if p.product_type == "course" and p.course:
+            item.level = p.course.level
+            item.duration = p.course.duration
         result.append(item)
     return ProductsListResponse(products=result, total=total, page=page, page_size=page_size)
 
@@ -305,11 +314,25 @@ def update_product(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    product = db.query(Product).filter(Product.product_id == product_id).first()
+    product = db.query(Product).options(
+        joinedload(Product.course), joinedload(Product.ebook)
+    ).filter(Product.product_id == product_id).first()
     if not product:
         raise NotFoundException("Sản phẩm không tồn tại")
-    for field, value in data.model_dump(exclude_none=True).items():
-        setattr(product, field, value)
+    
+    update_data = data.model_dump(exclude_none=True)
+    product_fields = ["name", "price", "original_price", "description", "short_description", "thumbnail_url", "status", "category_id"]
+    course_fields = ["duration", "level", "requirements", "what_you_learn"]
+    ebook_fields = ["file_size", "format", "page_count"]
+
+    for field, value in update_data.items():
+        if field in product_fields:
+            setattr(product, field, value)
+        elif field in course_fields and product.product_type == "course" and product.course:
+            setattr(product.course, field, value)
+        elif field in ebook_fields and product.product_type == "ebook" and product.ebook:
+            setattr(product.ebook, field, value)
+
     db.commit()
     db.refresh(product)
     return ProductListResponse(
@@ -332,7 +355,46 @@ def delete_product(
         raise NotFoundException("Sản phẩm không tồn tại")
     product.status = "archived"
     db.commit()
-    return {"message": "Sản phẩm đã được ẩn"}
+    return {"message": "Sản phẩm đã được ẩn (archived)"}
+
+
+@router.delete("/products/{product_id}/hard")
+def hard_delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    from app.models.cart import CartItem
+    from app.models.wishlist import Wishlist
+    
+    product = db.query(Product).filter(Product.product_id == product_id).first()
+    if not product:
+        raise NotFoundException("Sản phẩm không tồn tại")
+    
+    # Check if there are orders
+    if db.query(OrderItem).filter(OrderItem.product_id == product_id).first():
+        raise BadRequestException("Không thể xóa hẳn vì sản phẩm này đã có lượt mua. Vui lòng dùng chức năng 'Ẩn'.")
+        
+    # Delete dependent things manually
+    db.query(CartItem).filter(CartItem.product_id == product_id).delete()
+    db.query(Wishlist).filter(Wishlist.product_id == product_id).delete()
+    db.query(Review).filter(Review.product_id == product_id).delete()
+    db.query(UserAccess).filter(UserAccess.product_id == product_id).delete()
+
+    if product.product_type == "course":
+        course = db.query(Course).filter(Course.product_id == product_id).first()
+        if course:
+            modules = db.query(Module).filter(Module.course_id == product_id).all()
+            for m in modules:
+                db.query(Lesson).filter(Lesson.module_id == m.module_id).delete()
+            db.query(Module).filter(Module.course_id == product_id).delete()
+            db.query(Course).filter(Course.product_id == product_id).delete()
+    elif product.product_type == "ebook":
+        db.query(Ebook).filter(Ebook.product_id == product_id).delete()
+
+    db.delete(product)
+    db.commit()
+    return {"message": "Sản phẩm đã bị xóa vĩnh viễn khỏi hệ thống"}
 
 
 # ── Orders ─────────────────────────────────────────────────
@@ -375,6 +437,8 @@ def admin_list_orders(
         ) if o.payment else None
         orders_resp.append(OrderResponse(
             order_id=o.order_id, user_id=o.user_id,
+            user_name=o.user.name if o.user else None,
+            user_email=o.user.email if o.user else None,
             coupon_code=o.coupon_code, subtotal=o.subtotal,
             discount_amount=o.discount_amount, total_amount=o.total_amount,
             status=o.status, created_at=o.created_at,
@@ -405,7 +469,17 @@ def refund_order(
         ).first()
         if access:
             access.is_active = False
-            access.revoked_at = datetime.now()
+            access.revoked_at = now_vn()
+
+    # Thông báo user + admin
+    from app.services.notification_service import notify_refund_completed
+    notify_refund_completed(
+        db,
+        order_id=order_id,
+        user_id=order.user_id,
+        amount=float(order.total_amount),
+    )
+
     db.commit()
     return {"message": "Hoàn tiền và thu hồi quyền truy cập thành công"}
 

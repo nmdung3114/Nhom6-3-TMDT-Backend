@@ -24,13 +24,20 @@ export function initApp() {
   import('./components/footer.js').then(m => m.renderFooter());
   if (AppState.token) loadCartCount();
   setupVoiceSearch();
-  // Global features — AI Tutor & Notifications
-  window.addEventListener('DOMContentLoaded', () => {
+  // Global features — AI Tutor, Blog Widget & Notifications
+  // ES modules are deferred, so DOMContentLoaded may have already fired.
+  const _initGlobalWidgets = () => {
     import('./components/ai-tutor.js').then(m => m.initAITutor()).catch(() => {});
+    import('./components/blog-widget.js').then(m => m.initBlogWidget()).catch(() => {});
     if (AppState.token) {
       import('./components/notifications.js').then(m => m.initNotifications()).catch(() => {});
     }
-  });
+  };
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', _initGlobalWidgets);
+  } else {
+    _initGlobalWidgets();
+  }
 }
 
 // ── Voice Search ───────────────────────────────────────────
@@ -217,11 +224,35 @@ export function formatPrice(amount) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
 
-export function formatDate(dateStr) {
+export function formatDate(dateStr, showTime = true) {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
+  let str = String(dateStr);
+  const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/i.test(str.trim());
+  const finalStr = hasOffset ? str : str.replace(' ', 'T') + 'Z';
+  const realDate = new Date(finalStr);
+
+  if (isNaN(realDate.getTime())) return dateStr;
+
+  const vnStr = realDate.toLocaleString('en-US', { 
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hour12: false 
   });
+  
+  const [datePartStr, timePartStr] = vnStr.split(', ');
+  if (!datePartStr || !timePartStr) return vnStr;
+
+  const [month, day, year] = datePartStr.split('/');
+  let [hour, min, sec] = timePartStr.split(':');
+  
+  if (hour === '24') hour = '00';
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const datePart = `${pad(day)}/${pad(month)}/${year}`;
+  
+  if (showTime) {
+    return `${pad(hour)}:${pad(min)}:${pad(sec)} ${datePart}`;
+  }
+  return datePart;
 }
 
 export function formatDuration(minutes) {

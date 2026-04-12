@@ -1,13 +1,10 @@
-import os
-import uuid
-from fastapi import APIRouter, Depends, Query, File, UploadFile
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import Optional
 from app.database import get_db
 from app.models.blog import BlogPost, BlogComment
 from app.models.user import User
-from app.models.notification import Notification
 from app.schemas.blog import (
     BlogPostCreate, BlogPostResponse, BlogPostListResponse, BlogPostListItem,
     BlogCommentCreate, BlogCommentResponse, BlogCommentListResponse,
@@ -19,9 +16,6 @@ from app.dependencies import get_current_user, get_current_user_optional, requir
 router = APIRouter(tags=["blog"])
 
 LIMIT_DEFAULT = 10
-UPLOAD_DIR = "/app/uploads/blog"
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
-MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 def _make_author(user: User) -> BlogAuthorInfo:
@@ -34,7 +28,6 @@ def _make_post_list_item(post: BlogPost, comment_count: int) -> BlogPostListItem
         post_id=post.post_id,
         title=post.title,
         content_preview=preview,
-        cover_image_url=post.cover_image_url,
         status=post.status,
         created_at=post.created_at,
         author=_make_author(post.author),
@@ -96,7 +89,6 @@ def create_post(
         user_id=current_user.user_id,
         title=data.title.strip(),
         content=data.content.strip(),
-        cover_image_url=data.cover_image_url,
         status="published",
     )
     db.add(post)
@@ -106,53 +98,12 @@ def create_post(
         post_id=post.post_id,
         title=post.title,
         content=post.content,
-        cover_image_url=post.cover_image_url,
         status=post.status,
         created_at=post.created_at,
         updated_at=post.updated_at,
         author=_make_author(current_user),
         comment_count=0,
     )
-
-
-@router.post("/api/blog/posts/{post_id}/cover")
-async def upload_post_cover(
-    post_id: int,
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Upload ảnh bìa cho bài viết."""
-    post = db.query(BlogPost).filter(BlogPost.post_id == post_id).first()
-    if not post:
-        raise NotFoundException("Bài viết không tồn tại")
-    if post.user_id != current_user.user_id and current_user.role != "admin":
-        raise ForbiddenException("Bạn không có quyền chỉnh sửa bài viết này")
-
-    # Validate file type
-    if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise BadRequestException("Chỉ chấp nhận file ảnh (JPEG, PNG, WebP, GIF)")
-
-    # Read and validate size
-    content = await file.read()
-    if len(content) > MAX_IMAGE_SIZE:
-        raise BadRequestException("Ảnh tối đa 5MB")
-
-    # Save file
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "jpg"
-    filename = f"blog_{post_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-
-    with open(filepath, "wb") as f:
-        f.write(content)
-
-    # Update DB
-    cover_url = f"/uploads/blog/{filename}"
-    post.cover_image_url = cover_url
-    db.commit()
-
-    return {"cover_image_url": cover_url}
 
 
 @router.get("/api/blog/posts/{post_id}", response_model=BlogPostResponse)
@@ -181,7 +132,6 @@ def get_post(
         post_id=post.post_id,
         title=post.title,
         content=post.content,
-        cover_image_url=post.cover_image_url,
         status=post.status,
         created_at=post.created_at,
         updated_at=post.updated_at,
@@ -257,19 +207,6 @@ def create_comment(
         status="visible",
     )
     db.add(comment)
-
-    # ── Gửi thông báo cho tác giả bài viết (nếu commenter ≠ author) ──
-    if post.user_id != current_user.user_id:
-        preview = data.content.strip()[:100]
-        notif = Notification(
-            user_id=post.user_id,
-            type="info",
-            title=f"💬 {current_user.name} đã bình luận bài viết của bạn",
-            message=f'"{preview}"',
-            link=f"/blog/post.html?id={post_id}",
-        )
-        db.add(notif)
-
     db.commit()
     db.refresh(comment)
     return BlogCommentResponse(

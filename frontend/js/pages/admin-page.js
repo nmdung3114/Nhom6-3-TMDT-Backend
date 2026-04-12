@@ -233,7 +233,9 @@ async function loadUsers(page = 1) {
     tbody.innerHTML = data.users.map(u => `
       <tr>
         <td><div style="display:flex;align-items:center;gap:10px">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">${u.name.charAt(0)}</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;overflow:hidden">
+            ${u.avatar_url ? `<img src="${u.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover">` : u.name.charAt(0).toUpperCase()}
+          </div>
           <div><div style="font-weight:600">${u.name}</div><div style="font-size:0.75rem;color:var(--color-text-muted)">${u.email}</div></div>
         </div></td>
         <td>${u.phone || '--'}</td>
@@ -306,9 +308,10 @@ async function loadProducts(page = 1) {
           <div class="table-actions">
             <button class="btn btn-icon btn-sm" title="Sửa thông tin" onclick="editProduct(${p.product_id})">✏️</button>
             ${p.product_type === 'course' ? `<button class="btn btn-icon btn-sm" title="Quản lý nội dung" onclick="manageContent(${p.product_id}, '${p.name.replace(/'/g, '')}')">📋</button>` : ''}
-            <button class="btn btn-icon btn-sm" onclick="archiveProduct(${p.product_id}, '${p.status}')">
-              ${p.status === 'active' ? '🗑' : '♻️'}
+            <button class="btn btn-icon btn-sm" title="${p.status === 'active' ? 'Ẩn sản phẩm' : 'Kích hoạt lại'}" onclick="archiveProduct(${p.product_id}, '${p.status}')">
+              ${p.status === 'active' ? '👁' : '♻️'}
             </button>
+            <button class="btn btn-icon btn-sm" title="Xóa vĩnh viễn" style="color:var(--color-error)" onclick="hardDeleteProduct(${p.product_id})">🗑</button>
           </div>
         </td>
       </tr>`).join('');
@@ -328,6 +331,15 @@ window.archiveProduct = async (productId, currentStatus) => {
       await api.put(`/admin/products/${productId}`, { status: 'active' }, true);
       showToast('Đã kích hoạt sản phẩm', 'success');
     }
+    loadProducts();
+  } catch(e) { showToast(e.message, 'error'); }
+};
+
+window.hardDeleteProduct = async (productId) => {
+  if (!confirm('CẢNH BÁO: Hành động này sẽ XÓA VĨNH VIỄN sản phẩm khỏi hệ thống. Bạn có chắc chắn không?')) return;
+  try {
+    const res = await api.delete(`/admin/products/${productId}/hard`, true);
+    showToast(res.message || 'Đã xóa vĩnh viễn', 'success');
     loadProducts();
   } catch(e) { showToast(e.message, 'error'); }
 };
@@ -360,6 +372,43 @@ async function showEditProductModal(productId) {
             <input class="form-control" name="short_description" value="${p.short_description || ''}"></div>
           <div class="form-group"><label class="form-label">Mô tả đầy đủ</label>
             <textarea class="form-control" name="description" rows="3" style="resize:vertical">${p.description || ''}</textarea></div>
+
+          ${p.product_type === 'course' ? `
+          <div style="margin:8px 0 16px;padding:12px;background:rgba(99,102,241,0.08);border-radius:8px;border:1px solid rgba(99,102,241,0.2)">
+            <div style="font-weight:600;margin-bottom:12px;color:var(--color-accent-light)">🎬 Thông tin khóa học</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div class="form-group"><label class="form-label">Cấp độ</label>
+                <select class="form-control" name="level">
+                  <option value="">-- Chọn --</option>
+                  <option value="beginner" ${p.course?.level === 'beginner' ? 'selected' : ''}>🟢 Cơ bản</option>
+                  <option value="intermediate" ${p.course?.level === 'intermediate' ? 'selected' : ''}>🟡 Trung cấp</option>
+                  <option value="advanced" ${p.course?.level === 'advanced' ? 'selected' : ''}>🔴 Nâng cao</option>
+                </select></div>
+              <div class="form-group"><label class="form-label">Tổng thời lượng (phút)</label>
+                <input type="number" class="form-control" name="duration" min="0" value="${p.course?.duration ? Math.floor(p.course.duration / 60) : 0}"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Yêu cầu đầu vào (mỗi dòng một yêu cầu)</label>
+              <textarea class="form-control" name="requirements" rows="2" style="resize:vertical">${p.course?.requirements ? JSON.parse(p.course.requirements).join('\\n') : ''}</textarea></div>
+            <div class="form-group"><label class="form-label">Học xong bạn sẽ biết (mỗi dòng một kỹ năng)</label>
+              <textarea class="form-control" name="what_you_learn" rows="3" style="resize:vertical">${p.course?.what_you_learn ? JSON.parse(p.course.what_you_learn).join('\\n') : ''}</textarea></div>
+          </div>` : ''}
+
+          ${p.product_type === 'ebook' ? `
+          <div style="margin:8px 0 16px;padding:12px;background:rgba(168,85,247,0.08);border-radius:8px;border:1px solid rgba(168,85,247,0.2)">
+            <div style="font-weight:600;margin-bottom:12px;color:#a855f7">📖 Thông tin Ebook</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+              <div class="form-group"><label class="form-label">Định dạng</label>
+                <select class="form-control" name="format">
+                  <option value="pdf" ${p.ebook?.format === 'pdf' ? 'selected' : ''}>PDF</option>
+                  <option value="epub" ${p.ebook?.format === 'epub' ? 'selected' : ''}>EPUB</option>
+                </select></div>
+              <div class="form-group"><label class="form-label">Số trang</label>
+                <input type="number" class="form-control" name="page_count" min="0" value="${p.ebook?.page_count || 0}"></div>
+              <div class="form-group"><label class="form-label">Dung lượng (MB)</label>
+                <input type="number" class="form-control" name="file_size" min="0" step="0.1" value="${p.ebook?.file_size || 0}"></div>
+            </div>
+          </div>` : ''}
+
           <div class="form-group"><label class="form-label">Trạng thái</label>
             <select class="form-control" name="status">
               <option value="active" ${p.status === 'active' ? 'selected' : ''}>Active</option>
@@ -373,13 +422,41 @@ async function showEditProductModal(productId) {
     document.getElementById('edit-product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
-      const data = Object.fromEntries(fd.entries());
+      const raw = Object.fromEntries(fd.entries());
+      
+      const updateData = {
+        name: raw.name,
+        price: Number(raw.price),
+        original_price: raw.original_price ? Number(raw.original_price) : null,
+        thumbnail_url: raw.thumbnail_url || null,
+        short_description: raw.short_description || null,
+        description: raw.description || null,
+        status: raw.status
+      };
+
+      if (p.product_type === 'course') {
+        if (raw.level) updateData.level = raw.level;
+        if (raw.duration) updateData.duration = Number(raw.duration) * 60; // mins → seconds
+        if (raw.requirements) {
+          const lines = raw.requirements.split('\n').map(s => s.trim()).filter(Boolean);
+          updateData.requirements = lines.length ? JSON.stringify(lines) : null;
+        } else {
+          updateData.requirements = null;
+        }
+        if (raw.what_you_learn) {
+          const lines = raw.what_you_learn.split('\n').map(s => s.trim()).filter(Boolean);
+          updateData.what_you_learn = lines.length ? JSON.stringify(lines) : null;
+        } else {
+          updateData.what_you_learn = null;
+        }
+      } else if (p.product_type === 'ebook') {
+        if (raw.format) updateData.format = raw.format;
+        if (raw.page_count) updateData.page_count = Number(raw.page_count);
+        if (raw.file_size) updateData.file_size = Number(raw.file_size);
+      }
+
       try {
-        await api.put(`/admin/products/${productId}`, {
-          ...data,
-          price: Number(data.price),
-          original_price: data.original_price ? Number(data.original_price) : null,
-        }, true);
+        await api.put(`/admin/products/${productId}`, updateData, true);
         showToast('Cập nhật thành công', 'success');
         overlay.remove();
         loadProducts();
@@ -466,7 +543,7 @@ window.showAddModuleForm = (productId) => {
 window.showAddLessonForm = (moduleId, productId) => {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
-  overlay.style.zIndex = '600';
+  overlay.style.zIndex = '1100';
   overlay.innerHTML = `
     <div class="modal" style="max-width:520px">
       <div class="modal__header">
@@ -538,7 +615,7 @@ window.deleteModule = async (moduleId, productId) => {
 window.editLessonModal = (lessonId, title, muxId, duration, isPreview, productId) => {
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
-  overlay.style.zIndex = '600';
+  overlay.style.zIndex = '1100';
   overlay.innerHTML = `
     <div class="modal" style="max-width:520px">
       <div class="modal__header">
@@ -605,6 +682,7 @@ async function loadOrders(page = 1) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--color-text-muted)">Không có đơn hàng</td></tr>';
       return;
     }
+    window._currentOrders = data.orders;
     tbody.innerHTML = data.orders.map(o => {
       const statusBadge = {
         pending: '<span class="badge badge-warning">⏳ Chờ TT</span>',
@@ -614,15 +692,21 @@ async function loadOrders(page = 1) {
       };
       return `<tr>
         <td>#${o.order_id}</td>
-        <td>User #${o.user_id}</td>
+        <td>
+          <div style="font-weight:600">${o.user_name || 'Khách mất tên'}</div>
+          <div style="font-size:0.75rem;color:var(--color-text-muted)">${o.user_email || ''}</div>
+        </td>
         <td>${o.items.length} sản phẩm</td>
         <td>${formatPrice(o.total_amount)}</td>
         <td>${statusBadge[o.status] || o.status}</td>
         <td>${formatDate(o.created_at)}</td>
         <td>
-          ${o.status === 'paid'
-            ? `<button class="btn btn-sm btn-danger" onclick="refundOrder(${o.order_id})">↩ Hoàn tiền</button>`
-            : ''}
+          <div class="table-actions">
+            <button class="btn btn-icon btn-sm" title="Xem chi tiết" onclick="showOrderDetails(${o.order_id})">👁️</button>
+            ${o.status === 'paid'
+              ? `<button class="btn btn-icon btn-sm" title="Hoàn tiền" style="color:var(--color-error)" onclick="refundOrder(${o.order_id})">↩</button>`
+              : ''}
+          </div>
         </td>
       </tr>`;
     }).join('');
@@ -630,6 +714,79 @@ async function loadOrders(page = 1) {
     renderTablePagination('orders-pagination', data.total, 20, page, loadOrders);
   } catch(e) { showToast(e.message, 'error'); }
 }
+
+window.showOrderDetails = (orderId) => {
+  const o = window._currentOrders?.find(x => x.order_id === orderId);
+  if (!o) return;
+
+  const statusBadge = {
+    pending: '<span class="badge badge-warning">⏳ Chờ thanh toán</span>',
+    paid: '<span class="badge badge-success">✅ Đã thanh toán</span>',
+    cancelled: '<span class="badge badge-error">❌ Đã hủy</span>',
+    refunded: '<span class="badge badge-info">↩ Đã hoàn tiền</span>',
+  };
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.zIndex = '2000';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:600px; padding: 24px;">
+      <div class="modal__header" style="margin-bottom: 20px;">
+        <div class="modal__title" style="font-size:1.25rem;">📝 Chi tiết Đơn hàng #${o.order_id}</div>
+        <div class="modal__close" onclick="this.closest('.modal-overlay').remove()">✕</div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:0.8rem; color:var(--color-text-muted)">Khách hàng</div>
+            <div style="font-weight:600">${o.user_name || 'Khách mất tên'}</div>
+            <div style="font-size:0.85rem">${o.user_email || ''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:0.8rem; color:var(--color-text-muted)">Trạng thái & Thời gian</div>
+            <div>${statusBadge[o.status] || o.status}</div>
+            <div style="font-size:0.85rem; margin-top:4px">${formatDate(o.created_at)}</div>
+          </div>
+        </div>
+        
+        <div style="margin:20px 0 10px; font-weight:600; color:var(--color-accent-light)">🛍 Sản phẩm đã mua (${o.items.length})</div>
+        <div style="max-height:280px; overflow-y:auto; margin-bottom:20px; background:var(--color-bg-glass); border-radius:8px; padding:12px; border:1px solid var(--color-border)">
+          ${o.items.map(i => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+              <div style="display:flex; align-items:center; gap:12px;">
+                ${i.product_thumbnail ? `<img src="${i.product_thumbnail}" style="width:48px;height:32px;object-fit:cover;border-radius:4px">` : '<div style="width:48px;height:32px;background:#333;border-radius:4px"></div>'}
+                <div>
+                  <div style="font-weight:600; font-size:0.9rem">${i.product_name || 'Sản phẩm'}</div>
+                  <div style="font-size:0.75rem; color:var(--color-text-muted)">Loại: ${i.product_type === 'course' ? 'Khóa học' : 'Ebook'} &nbsp;•&nbsp; SL: ${i.quantity}</div>
+                </div>
+              </div>
+              <div style="font-weight:600; color:var(--color-text-primary)">
+                ${formatPrice(i.price)}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="background:var(--color-bg-glass); border-radius:8px; padding:16px; border:1px solid var(--color-border)">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.95rem">
+            <span>Tạm tính:</span>
+            <strong>${formatPrice(o.subtotal)}</strong>
+          </div>
+          ${o.discount_amount > 0 ? `
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.95rem; color:var(--color-success)">
+              <span>Mã giảm giá (${o.coupon_code || ''}):</span>
+              <strong>-${formatPrice(o.discount_amount)}</strong>
+            </div>
+          ` : ''}
+          <div style="display:flex; justify-content:space-between; margin-top:12px; padding-top:12px; border-top:1px dashed var(--color-border); font-size:1.15rem">
+            <span>Tổng thanh toán:</span>
+            <strong style="color:var(--color-accent)">${formatPrice(o.total_amount)}</strong>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+};
 
 window.refundOrder = async (orderId) => {
   if (!confirm(`Hoàn tiền đơn hàng #${orderId}? Quyền truy cập nội dung sẽ bị thu hồi.`)) return;
@@ -840,9 +997,18 @@ if (PAGE === 'coupons')   loadCoupons();
 
 function setupSearchFilter(inputId, loadFn) {
   let timer;
-  document.getElementById(inputId)?.addEventListener('input', () => {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.addEventListener('input', () => {
     clearTimeout(timer);
     timer = setTimeout(() => loadFn(1), 500);
+  });
+  // Enter triggers immediately
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      clearTimeout(timer);
+      loadFn(1);
+    }
   });
 }
 

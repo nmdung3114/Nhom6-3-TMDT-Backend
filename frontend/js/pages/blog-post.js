@@ -1,4 +1,4 @@
-import { AppState, showToast } from '../app.js';
+import { AppState, showToast, formatDate } from '../app.js';
 import { api } from '../api/client.js';
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -12,9 +12,7 @@ function escHtml(str) {
 }
 
 function fmtDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit' });
+  return formatDate(iso, true);
 }
 
 function avatarEl(author, size = 36) {
@@ -169,10 +167,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-submit-comment')?.addEventListener('click', submitComment);
   document.getElementById('btn-delete-post')?.addEventListener('click', deletePost);
 
-  // Auto-resize textarea
+  // Auto-resize textarea + Ctrl+Enter to submit
   const textarea = document.getElementById('comment-input');
   textarea?.addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 300) + 'px';
+  });
+  // Enter = submit (Shift+Enter = new line)
+  textarea?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitComment();
+    }
   });
 });

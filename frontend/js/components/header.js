@@ -70,25 +70,25 @@ export function renderNavbar() {
 
   container.innerHTML = `
     <a href="/" class="navbar__brand">
-      <div class="navbar__brand-icon">🎓</div>
+      <div class="navbar__brand-icon">E</div>
       <span class="navbar__brand-text">ELearn<span>VN</span></span>
     </a>
     <div class="navbar__search">
-      <span class="navbar__search-icon">🔍</span>
+      <span class="navbar__search-icon">⌕</span>
       <input id="search-input" type="text" class="navbar__search-input" placeholder="Tìm kiếm khóa học, ebook...">
       <button id="voice-search-btn" class="navbar__search-mic" title="Tìm kiếm bằng giọng nói" aria-label="Tìm kiếm bằng giọng nói">🎤</button>
     </div>
     <nav class="navbar__nav">
-      <a href="/products/list.html" class="navbar__nav-link">📚 <span>Khóa học</span></a>
-      <a href="/products/list.html?type=ebook" class="navbar__nav-link">📖 <span>Ebook</span></a>
-      <a href="/blog/index.html" class="navbar__nav-link">✍️ <span>Blog</span></a>
-      <button id="theme-toggle" class="theme-toggle" title="Đổi chủ đề sáng/tối" aria-label="Đổi chủ đề">🌙</button>
+      <a href="/products/list.html" class="navbar__nav-link"><span>Khóa học</span></a>
+      <a href="/products/list.html?type=ebook" class="navbar__nav-link"><span>Ebook</span></a>
       ${!AppState.user ? `
+        <button id="theme-toggle" class="theme-toggle" title="Đổi chủ đề sáng/tối" aria-label="Đổi chủ đề">🌙</button>
         <a href="/auth/login.html" class="btn btn-sm btn-secondary">Đăng nhập</a>
         <a href="/auth/register.html" class="btn btn-sm btn-primary" style="margin-left:8px">Đăng ký</a>
       ` : `
-        <div style="display:flex;align-items:center;gap:10px">
-          <a href="/cart/index.html" id="nav-cart-btn" class="navbar__cart-btn">
+        <div class="navbar__icons">
+          <button id="theme-toggle" class="navbar__icon-btn" title="Đổi chủ đề sáng/tối" aria-label="Đổi chủ đề">🌙</button>
+          <a href="/cart/index.html" id="nav-cart-btn" class="navbar__icon-btn" title="Giỏ hàng">
             🛒 <span id="cart-badge" class="cart-badge" style="display:none">0</span>
           </a>
           <div class="navbar__user">
@@ -102,12 +102,12 @@ export function renderNavbar() {
               <span class="navbar__user-chevron">▾</span>
             </button>
             <div id="user-dropdown" class="dropdown-menu">
-              <a href="/profile/index.html" class="dropdown-item">👤 Hồ sơ của tôi</a>
-              <a href="/profile/index.html#my-courses" class="dropdown-item">🎓 Khóa học của tôi</a>
-              <a href="/orders/index.html" class="dropdown-item">📦 Đơn hàng</a>
-              ${isAdmin ? `<a href="/admin/dashboard.html" class="dropdown-item">⚙️ Quản trị</a>` : ''}
+              <a href="/profile/index.html" class="dropdown-item">Hồ sơ của tôi</a>
+              <a href="/profile/index.html#my-courses" class="dropdown-item">Khóa học của tôi</a>
+              <a href="/orders/index.html" class="dropdown-item">Đơn hàng</a>
+              ${isAdmin ? `<a href="/admin/dashboard.html" class="dropdown-item">Quản trị</a>` : ''}
               <div class="dropdown-divider"></div>
-              <div class="dropdown-item danger" onclick="app.logout()">🚪 Đăng xuất</div>
+              <div class="dropdown-item danger" onclick="app.logout()">Đăng xuất</div>
             </div>
           </div>
         </div>
@@ -124,11 +124,22 @@ function updateNavAuthState() {
   const navUser = document.getElementById('nav-user');
   const navUserName = document.getElementById('nav-user-name');
   const adminItem = document.getElementById('admin-dropdown-item');
+  const navAvatar = document.getElementById('nav-avatar') || document.querySelector('.navbar__avatar');
 
   if (AppState.user) {
     navAuth && (navAuth.style.display = 'none');
     navUser && (navUser.style.display = 'flex');
     navUserName && (navUserName.textContent = AppState.user.name);
+    
+    // Set updated avatar immediately
+    if (navAvatar) {
+      if (AppState.user.avatar_url) {
+        navAvatar.innerHTML = `<img src="${AppState.user.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        navAvatar.innerHTML = AppState.user.name.charAt(0).toUpperCase();
+      }
+    }
+
     if (adminItem) adminItem.style.display = AppState.user.role === 'admin' ? 'flex' : 'none';
     updateCartBadge();
   } else {

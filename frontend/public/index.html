@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ELearnVN - Nền tảng học trực tuyến hàng đầu Việt Nam. Khóa học lập trình, AI, thiết kế, kinh doanh từ chuyên gia thực chiến.">
-  <meta name="theme-color" content="#6366f1">
+  <meta name="theme-color" content="#4f46e5">
   <title>ELearnVN - Học Online Không Giới Hạn</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%234f46e5'/><text y='.9em' x='10' font-size='75' fill='white'>E</text></svg>">
   <!-- CSS -->
   <link rel="stylesheet" href="/css/base/reset.css">
   <link rel="stylesheet" href="/css/base/variables.css">
@@ -26,19 +26,19 @@
   <nav id="navbar" class="navbar">
     <div class="container navbar__inner">
       <a href="/" class="navbar__brand">
-        <div class="navbar__brand-icon">🎓</div>
-        <span class="navbar__brand-text">ELearnVN</span>
+        <div class="navbar__brand-icon">E</div>
+        <span class="navbar__brand-text">ELearn<span>VN</span></span>
       </a>
       <div class="navbar__search">
-        <span class="navbar__search-icon">🔍</span>
+        <span class="navbar__search-icon">⌕</span>
         <input id="search-input" type="text" class="navbar__search-input" placeholder="Tìm kiếm khóa học, ebook...">
         <button id="voice-search-btn" class="navbar__search-mic" title="Tìm kiếm bằng giọng nói" aria-label="Tìm kiếm bằng giọng nói">
           🎤
         </button>
       </div>
       <nav class="navbar__nav">
-        <a href="/products/list.html" class="navbar__nav-link">📚 <span>Khóa học</span></a>
-        <a href="/products/list.html?type=ebook" class="navbar__nav-link">📖 <span>Ebook</span></a>
+        <a href="/products/list.html" class="navbar__nav-link"><span>Khóa học</span></a>
+        <a href="/products/list.html?type=ebook" class="navbar__nav-link"><span>Ebook</span></a>
         <button id="theme-toggle" class="theme-toggle" title="Đổi chủ đề sáng/tối" aria-label="Đổi chủ đề">🌙</button>
         <!-- Auth: shown when logged out -->
         <div id="nav-auth">
@@ -57,12 +57,12 @@
               <span>▾</span>
             </button>
             <div id="user-dropdown" class="dropdown-menu">
-              <a href="/profile/index.html" class="dropdown-item">👤 Hồ sơ của tôi</a>
-              <a href="/profile/index.html#my-courses" class="dropdown-item">🎓 Khóa học của tôi</a>
-              <a href="/orders/index.html" class="dropdown-item">📦 Đơn hàng</a>
-              <div id="admin-dropdown-item" class="dropdown-item" style="display:none" onclick="location.href='/admin/dashboard.html'">⚙️ Quản trị</div>
+              <a href="/profile/index.html" class="dropdown-item">Hồ sơ của tôi</a>
+              <a href="/profile/index.html#my-courses" class="dropdown-item">Khóa học của tôi</a>
+              <a href="/orders/index.html" class="dropdown-item">Đơn hàng</a>
+              <div id="admin-dropdown-item" class="dropdown-item" style="display:none" onclick="location.href='/admin/dashboard.html'">Quản trị</div>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-item danger" onclick="app.logout()">🚪 Đăng xuất</div>
+              <div class="dropdown-item danger" onclick="app.logout()">Đăng xuất</div>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@
   <section class="hero">
     <div class="container hero__grid">
       <div class="hero__content">
-        <div class="hero__eyebrow">⚡ Nền tảng học #1 Việt Nam</div>
+        <div class="hero__eyebrow">Nền tảng học #1 Việt Nam</div>
         <h1 class="hero__title">
           Học <span class="text-gradient">không giới hạn</span>,<br>
           Thành công <span class="text-gradient">vượt trội</span>
@@ -84,7 +84,7 @@
           Học lúc nào, ở đâu cũng được — theo đúng tốc độ của bạn.
         </p>
         <div class="hero__actions">
-          <a href="/products/list.html" class="btn btn-primary btn-xl">🚀 Khám phá ngay</a>
+          <a href="/products/list.html" class="btn btn-primary btn-xl">Khám phá ngay →</a>
           <a href="/auth/register.html" class="btn btn-outline btn-xl">Bắt đầu miễn phí</a>
         </div>
         <div class="hero__stats">
@@ -110,22 +110,22 @@
           <div class="float-card__progress">
             <div class="float-card__progress-fill" style="width:65%"></div>
           </div>
-          <div style="font-size:0.73rem;color:#64748b;margin-top:8px">65% hoàn thành</div>
+          <div style="font-size:0.73rem;color:var(--color-text-muted);margin-top:8px">65% hoàn thành</div>
         </div>
         <div class="hero__float-card">
           <div class="float-card__icon">🤖</div>
           <div class="float-card__title">Machine Learning cơ bản</div>
           <div style="display:flex;gap:4px;margin-top:auto">
             <span style="font-size:0.75rem;color:#f59e0b">★★★★★</span>
-            <span style="font-size:0.73rem;color:#64748b">4.9 (412)</span>
+            <span style="font-size:0.73rem;color:var(--color-text-muted)">4.9 (412)</span>
           </div>
         </div>
         <div class="hero__float-card">
           <div style="display:flex;align-items:center;gap:12px">
             <div class="float-card__icon" style="margin:0">🎉</div>
             <div>
-              <div style="font-size:0.82rem;font-weight:700">Chứng chỉ hoàn thành</div>
-              <div style="font-size:0.72rem;color:#64748b">React & FastAPI</div>
+              <div style="font-size:0.82rem;font-weight:600">Chứng chỉ hoàn thành</div>
+              <div style="font-size:0.72rem;color:var(--color-text-muted)">React & FastAPI</div>
             </div>
           </div>
         </div>
@@ -137,9 +137,9 @@
   <section class="categories section">
     <div class="container">
       <div style="text-align:center;margin-bottom:48px" class="animate-on-scroll">
-        <div class="section-label">✦ Danh mục</div>
+        <div class="section-label">Danh mục</div>
         <h2 class="section-title">Khám phá theo danh mục</h2>
-        <p class="section-subtitle">Từ lập trình đến kinh doanh — tất cả đều có tại đây</p>
+        <p class="section-subtitle" style="margin-left:auto;margin-right:auto">Từ lập trình đến kinh doanh — tất cả đều có tại đây</p>
       </div>
       <div id="categories-grid" class="categories__grid">
         <!-- Loaded dynamically -->
@@ -176,7 +176,7 @@
     <div class="container">
       <div class="products-header animate-on-scroll">
         <div>
-          <div class="section-label">🔥 Hot nhất</div>
+          <div class="section-label">Nổi bật</div>
           <h2 class="section-title">Khóa học nổi bật</h2>
           <p class="text-secondary">Được yêu thích nhất bởi học viên</p>
         </div>
@@ -193,7 +193,7 @@
     <div class="container">
       <div class="products-header animate-on-scroll">
         <div>
-          <div class="section-label">📚 Ebook</div>
+          <div class="section-label">Ebook</div>
           <h2 class="section-title">Ebook phổ biến</h2>
           <p class="text-secondary">Tài liệu số chất lượng cao từ chuyên gia</p>
         </div>
@@ -208,8 +208,8 @@
   <!-- Features Section -->
   <section class="features section">
     <div class="container">
-      <div style="text-align:center;margin-bottom:64px" class="animate-on-scroll">
-        <div class="section-label">⭐ Tại sao chọn chúng tôi</div>
+      <div style="text-align:center;margin-bottom:56px" class="animate-on-scroll">
+        <div class="section-label">Tại sao chọn chúng tôi</div>
         <h2 class="section-title">ELearnVN — Học một lần,<br>Dùng mãi mãi</h2>
         <p class="section-subtitle" style="margin-left:auto;margin-right:auto">Chất lượng được kiểm chứng bởi hàng chục nghìn học viên khắp Việt Nam</p>
       </div>
@@ -252,11 +252,11 @@
   <section class="cta-section section animate-on-scroll">
     <div class="container">
       <div class="cta-card">
-        <h2>Bắt đầu hành trình học tập<br>ngay hôm nay 🚀</h2>
+        <h2>Bắt đầu hành trình học tập<br>ngay hôm nay</h2>
         <p>Tham gia cộng đồng <strong>50,000+</strong> học viên đang nâng cao kỹ năng mỗi ngày — miễn phí để thử!</p>
         <div class="cta-actions">
-          <a href="/auth/register.html" class="btn btn-xl btn-cta-white">🎓 Đăng ký miễn phí</a>
-          <a href="/products/list.html" class="btn btn-xl btn-cta-outline-white">📚 Xem khóa học</a>
+          <a href="/auth/register.html" class="btn btn-xl btn-cta-white">Đăng ký miễn phí</a>
+          <a href="/products/list.html" class="btn btn-xl btn-cta-outline-white">Xem khóa học</a>
         </div>
       </div>
     </div>

@@ -143,15 +143,31 @@ function setupListeners() {
     loadProducts();
   });
 
-  // Search
+  // Search — debounce on input, immediate on Enter
   let searchTimer;
-  document.getElementById('search-input')?.addEventListener('input', function() {
+  const searchInput = document.getElementById('search-input');
+  searchInput?.addEventListener('input', function() {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
       state.search = this.value.trim();
       state.page = 1;
       loadProducts();
     }, 500);
+  });
+  searchInput?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      clearTimeout(searchTimer);
+      state.search = this.value.trim();
+      state.page = 1;
+      loadProducts();
+    }
+  });
+
+  // Price inputs — apply on Enter key (no need to click button)
+  ['min-price', 'max-price'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') window.productsPage.applyFilters();
+    });
   });
 }
 

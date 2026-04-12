@@ -13,7 +13,7 @@ from google.auth.transport import requests as google_requests
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-GOOGLE_CLIENT_ID = "769838445738-qbev0l32b0namp6pq4cea7d41suhsll7.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = "798650741088-9nn9rleehvi8b77vsnod78nr6hvvo4sc.apps.googleusercontent.com"
 
 
 

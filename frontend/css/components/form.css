@@ -84,6 +84,7 @@ select.form-control {
   pointer-events: none;
   transition: all var(--transition-fast);
 }
+.input-wrapper .input-icon ~ .form-label { left: 44px; }
 .form-group-float .form-control:focus ~ .form-label,
 .form-group-float .form-control:not(:placeholder-shown) ~ .form-label {
   top: 14px; font-size: 0.72rem; font-weight: 600;
