@@ -104,3 +104,69 @@ def notify_refund_completed(db: Session, order_id: int, user_id: int, amount):
         f"Đã hoàn tiền thành công cho người dùng #{user_id}, đơn hàng #{order_id} ({amount:,.0f}đ).",
         admin_link,
     )
+
+
+# ─────────────────────────────────────────────────────────────
+# Author / Instructor notifications
+# ─────────────────────────────────────────────────────────────
+
+def notify_author_application(db: Session, applicant_user_id: int, applicant_name: str):
+    """Learner nộp đơn xin làm giảng viên → notify admins."""
+    _notify_all_admins(
+        db, "info",
+        f"📝 Đơn xin giảng viên từ {applicant_name}",
+        f"Người dùng {applicant_name} (#{applicant_user_id}) vừa gửi đơn xin trở thành Giảng viên. Vui lòng kiểm duyệt!",
+        "/admin/author-applications.html",
+    )
+
+
+def notify_author_approved(db: Session, user_id: int):
+    """Admin duyệt tài khoản giảng viên → notify user."""
+    _create(
+        db, user_id, "success",
+        "🎉 Chúc mừng! Bạn đã trở thành Giảng viên!",
+        "Tài khoản giảng viên của bạn đã được phê duyệt. Hãy vào Instructor Dashboard để tạo khóa học đầu tiên của bạn!",
+        "/instructor/courses.html",
+    )
+
+
+def notify_author_rejected(db: Session, user_id: int):
+    """Admin từ chối tài khoản giảng viên → notify user."""
+    _create(
+        db, user_id, "warning",
+        "❌ Đơn giảng viên bị từ chối",
+        "Đơn đăng ký làm giảng viên của bạn chưa được chấp thuận. Bạn có thể gửi lại sau khi cập nhật thông tin.",
+        "/profile",
+    )
+
+
+def notify_course_submitted(db: Session, product_id: int, product_name: str, author_name: str):
+    """Tác giả gửi khóa học chờ duyệt → notify admins."""
+    _notify_all_admins(
+        db, "info",
+        f"📚 Khóa học chờ duyệt: {product_name}",
+        f"Tác giả {author_name} vừa gửi khóa học “{product_name}” (#{product_id}) chờ kiểm duyệt.",
+        "/admin/course-approvals.html",
+    )
+
+
+def notify_course_approved(db: Session, user_id: int, product_id: int, product_name: str):
+    """Admin duyệt khóa học → notify tác giả."""
+    _create(
+        db, user_id, "success",
+        f"✅ Khóa học đã được duyệt!",
+        f"Khóa học “{product_name}” (#{product_id}) đã được phê duyệt và có thể bán trên hệ thống!",
+        f"/instructor/courses.html",
+    )
+
+
+def notify_course_rejected(db: Session, user_id: int, product_id: int, product_name: str, reason: str):
+    """Admin từ chối khóa học → notify tác giả."""
+    _create(
+        db, user_id, "error",
+        f"❌ Khóa học bị từ chối",
+        f"Khóa học “{product_name}” (#{product_id}) bị từ chối. Lý do: {reason}",
+        f"/instructor/courses.html",
+    )
+
+

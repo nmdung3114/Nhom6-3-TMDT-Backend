@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiểm duyệt khóa học - Admin ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+  <style>
+    .approval-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; margin-bottom: 14px; transition: box-shadow 0.2s; }
+    .approval-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .approval-header { display: flex; gap: 14px; align-items: flex-start; }
+    .approval-thumb { width: 100px; height: 68px; border-radius: 8px; object-fit: cover; background: var(--color-border); flex-shrink: 0; }
+    .approval-body { flex: 1; min-width: 0; }
+    .approval-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+    .approval-meta { font-size: 0.82rem; color: var(--color-text-muted); display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .approval-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-border); }
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--color-text-muted); }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 12px; }
+    .badge-mini { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 0.73rem; font-weight: 600; }
+    /* Author Applications Tab */
+    .app-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; }
+    .app-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--color-border); object-fit: cover; }
+    .app-body { flex: 1; }
+    .app-name { font-weight: 600; margin-bottom: 2px; }
+    .app-email { font-size: 0.83rem; color: var(--color-text-muted); }
+    .app-actions { display: flex; gap: 8px; }
+    .tabs { display: flex; gap: 2px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px; padding: 4px; margin-bottom: 24px; max-width: 500px; }
+    .tab-btn { flex: 1; padding: 9px; border-radius: 8px; border: none; background: transparent; color: var(--color-text-secondary); cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: all 0.2s; }
+    .tab-btn.active { background: var(--color-primary); color: #fff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    /* Reject modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal { background: var(--color-surface); border-radius: 16px; padding: 28px; max-width: 480px; width: 100%; }
+    .modal__title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; }
+    .modal__footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+    .badge-count { background: var(--color-error); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; margin-left: 6px; }
+  </style>
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+
+  <nav class="navbar" id="navbar">
+    <div class="container navbar__inner">
+      <a href="/admin/dashboard.html" class="navbar__brand">
+        <div class="navbar__brand-icon">🎓</div>
+        <span class="navbar__brand-text">ELearnVN</span>
+        <span style="font-size:0.7rem;background:var(--color-error-bg);color:var(--color-error);padding:2px 8px;border-radius:4px;margin-left:4px;font-weight:700">ADMIN</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:12px">
+        <a href="/admin/dashboard.html" class="btn btn-ghost btn-sm">← Dashboard</a>
+        <button class="btn btn-secondary btn-sm" onclick="app.logout()">🚪 Đăng xuất</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="admin-page">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar__section-title">Tổng quan</div>
+      <a href="/admin/dashboard.html" class="admin-nav-item"><span class="admin-icon">📊</span> Dashboard</a>
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Quản lý</div>
+      <a href="/admin/users.html" class="admin-nav-item"><span class="admin-icon">👥</span> Người dùng</a>
+      <a href="/admin/products.html" class="admin-nav-item"><span class="admin-icon">📚</span> Sản phẩm</a>
+      <a href="/admin/orders.html" class="admin-nav-item"><span class="admin-icon">📦</span> Đơn hàng</a>
+      <a href="/admin/coupons.html" class="admin-nav-item"><span class="admin-icon">🏷</span> Mã giảm giá</a>
+      <a href="/admin/course-approvals.html" class="admin-nav-item active"><span class="admin-icon">✅</span> Kiểm duyệt</a>
+      <a href="/admin/blog.html" class="admin-nav-item"><span class="admin-icon">✍️</span> Blog</a>
+      <div class="admin-sidebar__section-title" style="margin-top:16px">Hệ thống</div>
+      <a href="/api/docs" target="_blank" class="admin-nav-item"><span class="admin-icon">📖</span> API Docs</a>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 class="admin-header__title">✅ Kiểm duyệt nội dung</h1>
+        <p class="admin-header__subtitle">Duyệt khóa học và đơn đăng ký Giảng viên</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('courses', this)">
+          📚 Khóa học <span class="badge-count" id="count-courses">0</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('authors', this)">
+          👨‍🏫 Giảng viên <span class="badge-count" id="count-authors">0</span>
+        </button>
+      </div>
+
+      <!-- Tab: Courses -->
+      <div class="tab-content active" id="tab-courses">
+        <div id="course-list">
+          <div style="display:flex;align-items:center;justify-content:center;padding:80px;gap:12px;color:var(--color-text-muted)">
+            <div class="spinner spinner-sm"></div> Đang tải...
+          </div>
+        </div>
+        <div id="course-pagination" style="display:flex;justify-content:center;gap:8px;margin-top:20px"></div>
+      </div>
+
+      <!-- Tab: Author Applications -->
+      <div class="tab-content" id="tab-authors">
+        <div id="author-list">
+          <div style="display:flex;align-items:center;justify-content:center;padding:80px;gap:12px;color:var(--color-text-muted)">
+            <div class="spinner spinner-sm"></div> Đang tải...
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module">
+    import { api } from '/js/api/client.js';
+    import { AppState } from '/js/app.js';
+
+    // ── Tabs ──
+    window.switchTab = function(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+    };
+
+    // ── Courses ──
+    async function loadPendingCourses(page = 1) {
+      const list = document.getElementById('course-list');
+      list.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--color-text-muted)"><div class="spinner spinner-sm"></div> Đang tải...</div>`;
+      try {
+        const data = await api.get(`/admin/courses/pending?page=${page}&page_size=10`, true);
+        document.getElementById('count-courses').textContent = data.total;
+
+        if (!data.courses.length) {
+          list.innerHTML = `<div class="empty-state"><div class="empty-state__icon">🎉</div><p>Không có khóa học nào chờ duyệt!</p><p style="font-size:0.85rem;margin-top:8px">Hệ thống đang sạch sẽ 🧹</p></div>`;
+          return;
+        }
+
+        list.innerHTML = data.courses.map(c => `
+          <div class="approval-card" id="course-acard-${c.product_id}">
+            <div class="approval-header">
+              <img class="approval-thumb" src="${c.thumbnail_url || '/images/placeholder.jpg'}" onerror="this.src='/images/placeholder.jpg'" alt="${c.name}">
+              <div class="approval-body">
+                <div class="approval-title">${c.name}</div>
+                <div class="approval-meta">
+                  <span>👤 ${c.author_name || 'Ẩn danh'}</span>
+                  <span>📧 ${c.author_email || '--'}</span>
+                  <span>📂 ${c.category || 'Chưa phân loại'}</span>
+                  <span>💰 ${Number(c.price).toLocaleString('vi-VN')}đ</span>
+                  ${c.level ? `<span>📊 ${c.level}</span>` : ''}
+                  <span>📖 ${c.total_lessons} bài học</span>
+                  <span>🕐 ${new Date(c.updated_at).toLocaleString('vi-VN')}</span>
+                </div>
+              </div>
+            </div>
+            <div class="approval-actions">
+              <a href="/products/${c.product_id}" target="_blank" class="btn btn-ghost btn-sm">👁 Xem preview</a>
+              <a href="/admin/products.html?id=${c.product_id}" target="_blank" class="btn btn-ghost btn-sm">📋 Chi tiết</a>
+              <button class="btn btn-sm" style="background:#22c55e;color:#fff" onclick="approveCourse(${c.product_id}, this)">✅ Duyệt khóa học</button>
+              <button class="btn btn-sm" style="background:#ef4444;color:#fff" onclick="showRejectModal(${c.product_id}, '${c.name.replace(/'/g, "\\'")}')">❌ Từ chối</button>
+            </div>
+          </div>`).join('');
+
+        // Pagination
+        const total = Math.ceil(data.total / 10);
+        const pag = document.getElementById('course-pagination');
+        if (total > 1) {
+          pag.innerHTML = Array.from({length: total}, (_, i) =>
+            `<button class="btn btn-sm ${i+1 === page ? 'btn-primary' : 'btn-secondary'}" onclick="loadPendingCourses(${i+1})">${i+1}</button>`
+          ).join('');
+        }
+      } catch (err) {
+        list.innerHTML = `<div class="empty-state"><div class="empty-state__icon">⚠️</div><p>${err.message}</p></div>`;
+      }
+    }
+
+    window.loadPendingCourses = loadPendingCourses;
+
+    window.approveCourse = async function(id, btn) {
+      const isConfirmed = await window.app.showConfirm('Duyệt khóa học', 'Duyệt và đăng công khai khóa học này?');
+      if (!isConfirmed) return;
+      btn.disabled = true; btn.textContent = '⏳ Đang duyệt...';
+      try {
+        await api.post(`/admin/courses/${id}/approve`, null, true);
+        app.showToast('✅ Đã duyệt khóa học! Khóa học đã được đăng công khai.', 'success');
+        document.getElementById('course-acard-' + id)?.remove();
+        const count = document.getElementById('count-courses');
+        count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+      } catch (err) {
+        app.showToast(err.message, 'error');
+        btn.disabled = false; btn.textContent = '✅ Duyệt khóa học';
+      }
+    };
+
+    window.showRejectModal = function(id, name) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.id = 'reject-modal';
+      overlay.innerHTML = `
+        <div class="modal">
+          <div class="modal__title">❌ Từ chối khóa học</div>
+          <p style="color:var(--color-text-muted);font-size:0.9rem;margin-bottom:16px">Khóa học: <strong>${name}</strong></p>
+          <div class="form-group">
+            <label class="form-label">Lý do từ chối *</label>
+            <textarea class="form-control" id="reject-reason" rows="3" placeholder="VD: Video bài 3 bị rè, hình ảnh thumbnail chưa rõ nét..."></textarea>
+          </div>
+          <div class="modal__footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('reject-modal').remove()">Hủy</button>
+            <button class="btn" style="background:#ef4444;color:#fff" onclick="confirmReject(${id})">Xác nhận từ chối</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('reject-reason').focus();
+    };
+
+    window.confirmReject = async function(id) {
+      const reason = document.getElementById('reject-reason').value.trim();
+      if (!reason) { app.showToast('Vui lòng nhập lý do từ chối', 'error'); return; }
+      try {
+        await api.post(`/admin/courses/${id}/reject?reason=${encodeURIComponent(reason)}`, null, true);
+        app.showToast('Đã từ chối và thông báo cho Tác giả', 'info');
+        document.getElementById('reject-modal')?.remove();
+        document.getElementById('course-acard-' + id)?.remove();
+        const count = document.getElementById('count-courses');
+        count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+      } catch (err) {
+        app.showToast(err.message, 'error');
+      }
+    };
+
+    // ── Author Applications ──
+    async function loadAuthorApplications() {
+      const list = document.getElementById('author-list');
+      list.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--color-text-muted)"><div class="spinner spinner-sm"></div> Đang tải...</div>`;
+      try {
+        const data = await api.get('/admin/author-applications?page_size=50', true);
+        document.getElementById('count-authors').textContent = data.total;
+
+        if (!data.applications.length) {
+          list.innerHTML = `<div class="empty-state"><div class="empty-state__icon">👍</div><p>Không có đơn đăng ký Giảng viên nào đang chờ duyệt</p></div>`;
+          return;
+        }
+        
+        window._authorApplicationsMap = {};
+        data.applications.forEach(app => {
+          window._authorApplicationsMap[app.user_id] = app;
+        });
+        
+        list.innerHTML = data.applications.map(u => `
+          <div class="app-card" id="app-card-${u.user_id}">
+            <img class="app-avatar" src="${u.avatar_url || '/images/avatar-default.png'}" onerror="this.src='/images/avatar-default.png'" alt="${u.name}">
+            <div class="app-body">
+              <div class="app-name">${u.name}</div>
+              <div class="app-email">📧 ${u.email} ${u.phone ? `| 📞 ${u.phone}` : ''}</div>
+              <div style="font-size:0.8rem;color:var(--color-text-muted);margin-top:4px">Đăng ký: ${new Date(u.created_at).toLocaleDateString('vi-VN')}</div>
+            </div>
+            <div class="app-actions">
+              <button class="btn btn-sm btn-secondary" onclick="viewApplicationDetails(${u.user_id})">👁️ Xem chi tiết</button>
+              <button class="btn btn-sm" style="background:#22c55e;color:#fff" onclick="approveAuthor(${u.user_id}, '${u.name.replace(/'/g, "\\'")}', this)">✅ Phê duyệt</button>
+              <button class="btn btn-sm btn-secondary" onclick="rejectAuthor(${u.user_id}, this)">❌ Từ chối</button>
+            </div>
+          </div>`).join('');
+      } catch (err) {
+        list.innerHTML = `<div class="empty-state"><div class="empty-state__icon">⚠️</div><p>${err.message}</p></div>`;
+      }
+    }
+
+    window.viewApplicationDetails = function(userId) {
+      const u = window._authorApplicationsMap[userId];
+      if (!u) return;
+      
+      let parsedData = {};
+      if (u.author_application_data) {
+        try { parsedData = JSON.parse(u.author_application_data); } catch(e) {}
+      }
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'app-detail-modal';
+      modal.innerHTML = `
+        <div class="modal" style="width: 600px; max-width: 95%;">
+          <div class="modal__title">Chi tiết đơn đăng ký</div>
+          
+          <div style="margin-bottom: 20px;">
+            <div style="display:flex; align-items:center; gap: 16px; margin-bottom: 20px;">
+              <img src="${u.avatar_url || '/images/avatar-default.png'}" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover;">
+              <div>
+                <h3 style="margin: 0; font-size: 1.2rem;">${u.name}</h3>
+                <div style="color: var(--color-text-muted); font-size: 0.9rem;">📧 ${u.email}</div>
+                ${u.phone ? `<div style="color: var(--color-text-muted); font-size: 0.9rem;">📞 ${u.phone}</div>` : ''}
+              </div>
+            </div>
+
+            <div style="background: var(--color-surface); padding: 16px; border-radius: 8px; border: 1px solid var(--color-border); display: flex; flex-direction: column; gap: 12px;">
+              <div>
+                <div style="font-weight: 600; font-size: 0.9rem; color: var(--color-text-muted);">Chuyên môn / Lĩnh vực</div>
+                <div style="font-size: 1rem;">${parsedData.specialization || 'Chưa cung cấp'}</div>
+              </div>
+              
+              <div>
+                <div style="font-weight: 600; font-size: 0.9rem; color: var(--color-text-muted);">Kinh nghiệm</div>
+                <div style="font-size: 1rem; white-space: pre-wrap;">${parsedData.experience || 'Chưa cung cấp'}</div>
+              </div>
+
+              <div>
+                <div style="font-weight: 600; font-size: 0.9rem; color: var(--color-text-muted);">Website / Portfolio</div>
+                <div style="font-size: 1rem;">
+                  ${parsedData.portfolio_url ? `<a href="${parsedData.portfolio_url}" target="_blank" style="color: var(--color-primary);">${parsedData.portfolio_url}</a>` : 'Chưa cung cấp'}
+                </div>
+              </div>
+
+              <div>
+                <div style="font-weight: 600; font-size: 0.9rem; color: var(--color-text-muted);">Tóm tắt Khóa học dự kiến</div>
+                <div style="font-size: 1rem;">${parsedData.course_topic || 'Chưa cung cấp'}</div>
+              </div>
+
+              <div>
+                <div style="font-weight: 600; font-size: 0.9rem; color: var(--color-text-muted);">Hồ sơ lý lịch (CV)</div>
+                <div style="font-size: 1rem;">
+                  ${parsedData.cv_url ? `<a href="${parsedData.cv_url}" target="_blank" class="btn btn-sm btn-secondary" style="display:inline-flex; align-items:center; gap:8px; margin-top:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xem / Tải CV</a>` : 'Không có tệp đính kèm'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal__footer" style="display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="btn btn-secondary" onclick="document.getElementById('app-detail-modal').remove()">Đóng</button>
+            <button class="btn" style="background:#ef4444;color:#fff" onclick="document.getElementById('app-detail-modal').remove(); rejectAuthor(${u.user_id}, null)">❌ Từ chối</button>
+            <button class="btn" style="background:#22c55e;color:#fff" onclick="document.getElementById('app-detail-modal').remove(); approveAuthor(${u.user_id}, '${u.name.replace(/'/g, "\\'")}', null)">✅ Phê duyệt</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    };
+
+    window.approveAuthor = async function(id, name, btn) {
+      const isConfirmed = await window.app.showConfirm('Duyệt giảng viên', `Phê duyệt ${name} làm Giảng viên?`);
+      if (!isConfirmed) return;
+      btn.disabled = true; btn.textContent = '⏳...';
+      try {
+        await api.post(`/admin/author-applications/${id}/approve`, null, true);
+        app.showToast(`🎉 Đã phê duyệt ${name} làm Giảng viên!`, 'success');
+        document.getElementById('app-card-' + id)?.remove();
+        const count = document.getElementById('count-authors');
+        count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+      } catch (err) {
+        app.showToast(err.message, 'error');
+        btn.disabled = false; btn.textContent = '✅ Phê duyệt';
+      }
+    };
+
+    window.rejectAuthor = async function(id, btn) {
+      const isConfirmed = await window.app.showConfirm('Từ chối đơn', 'Từ chối đơn đăng ký này?');
+      if (!isConfirmed) return;
+      btn.disabled = true;
+      try {
+        await api.post(`/admin/author-applications/${id}/reject`, null, true);
+        app.showToast('Đã từ chối đơn đăng ký', 'info');
+        document.getElementById('app-card-' + id)?.remove();
+        const count = document.getElementById('count-authors');
+        count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+      } catch (err) {
+        app.showToast(err.message, 'error');
+        btn.disabled = false;
+      }
+    };
+
+    window.addEventListener('app:ready', async () => {
+      const user = AppState.user;
+      if (!user || user.role !== 'admin') {
+        window.location.href = '/';
+        return;
+      }
+      await Promise.all([loadPendingCourses(), loadAuthorApplications()]);
+    });
+  </script>
+</body>
+</html>

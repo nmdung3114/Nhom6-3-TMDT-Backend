@@ -12,6 +12,7 @@ class UserResponse(BaseModel):
     status: str
     avatar_url: Optional[str] = None
     oauth_provider: Optional[str] = None
+    author_application_status: Optional[str] = None
     created_at: Optional[datetime] = None
 
     class Config:
@@ -36,3 +37,10 @@ class UserListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+class AuthorApplicationRequest(BaseModel):
+    specialization: str
+    experience: str
+    portfolio_url: Optional[str] = None
+    course_topic: str
+    cv_url: Optional[str] = None

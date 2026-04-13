@@ -146,6 +146,7 @@ export function saveAuth(tokenData) {
     email:      tokenData.email,
     role:       tokenData.role,
     avatar_url: tokenData.avatar_url,
+    author_application_status: tokenData.author_application_status,
   };
   localStorage.setItem('el_token', AppState.token);
   localStorage.setItem('el_user',  JSON.stringify(AppState.user));
@@ -208,7 +209,7 @@ export function updateCartBadge() {
   }
 }
 
-// ── Toast ──────────────────────────────────────────────────
+// ── Toast & Modals ───────────────────────────────────────
 export function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -217,6 +218,202 @@ export function showToast(message, type = 'info') {
   toast.textContent = message;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 3200);
+}
+
+export function showConfirm(title, message, confirmText = 'Xác nhận', isDanger = false) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    Object.assign(overlay.style, {
+      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 99999, opacity: 0, transition: 'opacity 0.2s ease',
+    });
+
+    const modal = document.createElement('div');
+    modal.className = 'confirm-modal';
+    Object.assign(modal.style, {
+      backgroundColor: 'var(--color-bg-elevated, #fff)',
+      border: '1px solid var(--color-border)',
+      borderRadius: '16px', padding: '24px', width: '90%', maxWidth: '400px',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+      transform: 'scale(0.95)', transition: 'all 0.2s ease',
+    });
+
+    modal.innerHTML = `
+      <h3 style="margin: 0 0 12px 0; font-size: 1.25rem;">${title}</h3>
+      <p style="margin: 0 0 24px 0; color: var(--color-text-muted); line-height: 1.5;">${message}</p>
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="confirm-cancel" style="padding: 8px 16px;">Hủy bỏ</button>
+        <button class="btn ${isDanger ? 'btn-danger' : 'btn-primary'}" id="confirm-ok" style="padding: 8px 16px; ${isDanger ? 'background: var(--color-error); color: white; border: none;' : ''}">${confirmText}</button>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      modal.style.transform = 'scale(1)';
+    });
+
+    const close = (result) => {
+      overlay.style.opacity = '0';
+      modal.style.transform = 'scale(0.95)';
+      setTimeout(() => { overlay.remove(); resolve(result); }, 200);
+    };
+
+    modal.querySelector('#confirm-cancel').onclick = () => close(false);
+    modal.querySelector('#confirm-ok').onclick = () => close(true);
+  });
+}
+
+export function showAuthorApplicationForm() {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+      backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: '10000', opacity: '0', transition: 'opacity 0.2s',
+      padding: '20px'
+    });
+
+    const modal = document.createElement('div');
+    Object.assign(modal.style, {
+      backgroundColor: 'var(--color-bg)', color: 'var(--color-text)',
+      padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px',
+      maxHeight: '90vh', overflowY: 'auto',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+      transform: 'scale(0.95)', transition: 'all 0.2s ease',
+    });
+
+    modal.innerHTML = `
+      <h3 style="margin: 0 0 8px 0; font-size: 1.5rem;">✨ Đăng ký làm Giảng viên</h3>
+      <p style="margin: 0 0 24px 0; color: var(--color-text-muted); line-height: 1.5;">Vui lòng cung cấp chi tiết về chuyên môn của bạn. Đội ngũ quản trị viên sẽ xem xét đơn đăng ký và làm việc với bạn sớm nhất.</p>
+      
+      <form id="author-app-form" style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Chuyên môn / Lĩnh vực giảng dạy *</label>
+          <input type="text" id="specialization" required placeholder="VD: Lập trình Web, Thiết kế Đồ họa..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);">
+        </div>
+        
+        <div>
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Kinh nghiệm làm việc / Giảng dạy (Tóm tắt) *</label>
+          <textarea id="experience" required rows="3" placeholder="Chia sẻ ngắn gọn trải nghiệm và thành tựu của bạn..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text); font-family:inherit; resize:vertical;"></textarea>
+        </div>
+        
+        <div>
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Link Website / Portfolio / LinkedIn</label>
+          <input type="url" id="portfolio_url" placeholder="https://linkedin.com/in/..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);">
+        </div>
+
+        <div>
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Chủ đề Khóa học dự kiến *</label>
+          <input type="text" id="course_topic" required placeholder="Sản phẩm đầu tiên bạn muốn tạo trên ELearnVN là gì?" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);">
+        </div>
+
+        <div>
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Tải lên CV (Bắt buộc, tối đa 10MB) *</label>
+          <input type="file" id="cv_file" required accept=".pdf,.doc,.docx" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);">
+          <small id="cv-upload-status" style="display:block; margin-top:6px; color:var(--color-text-muted);"></small>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top:20px;">
+          <button type="button" class="btn btn-secondary" id="app-cancel">Hủy bỏ</button>
+          <button type="submit" class="btn btn-primary" id="app-submit">Gửi đăng ký</button>
+        </div>
+      </form>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      modal.style.transform = 'scale(1)';
+    });
+
+    const close = (result) => {
+      overlay.style.opacity = '0';
+      modal.style.transform = 'scale(0.95)';
+      setTimeout(() => { overlay.remove(); resolve(result); }, 200);
+    };
+
+    modal.querySelector('#app-cancel').onclick = () => close(null);
+
+    const form = modal.querySelector('#author-app-form');
+    const submitBtn = modal.querySelector('#app-submit');
+    const statusText = modal.querySelector('#cv-upload-status');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('cv_file');
+      if (!fileInput.files.length) {
+        showToast('Vui lòng đính kèm CV', 'warning');
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('File CV quá lớn (tối đa 10MB)', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner spinner-sm"></span> Đang xử lý...';
+      statusText.textContent = 'Đang tải tệp lên...';
+
+      try {
+        const { api } = await import('./api/client.js');
+        
+        // 1. Upload CV
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const token = localStorage.getItem('el_token');
+        const uploadRes = await fetch('/api/users/upload-cv', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+        
+        if (!uploadRes.ok) {
+            const err = await uploadRes.json();
+            throw new Error(err.detail || 'Lỗi khi tải CV lên hệ thống.');
+        }
+        
+        const uploadData = await uploadRes.json();
+        const cv_url = uploadData.url;
+        
+        statusText.textContent = 'Tải tệp thành công! Đang lưu đơn...';
+
+        // 2. Submit form
+        const payload = {
+            specialization: document.getElementById('specialization').value,
+            experience: document.getElementById('experience').value,
+            portfolio_url: document.getElementById('portfolio_url').value || undefined,
+            course_topic: document.getElementById('course_topic').value,
+            cv_url: cv_url
+        };
+
+        const res = await api.post('/users/apply-author', payload, true);
+        showToast(res.message || 'Đơn đã được gửi! 🎉', 'success');
+        
+        if (AppState.user) AppState.user.author_application_status = 'pending';
+        
+        close(payload);
+
+      } catch (err) {
+        showToast(err.message, 'error');
+        statusText.textContent = '';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Gửi đăng ký';
+      }
+    };
+  });
 }
 
 // ── Formatting ─────────────────────────────────────────────
@@ -357,6 +554,6 @@ window.toggleWishlist = async function(productId, btn) {
 };
 
 // ── Expose on window ───────────────────────────────────────
-window.app = { logout, requireAuth, requireAdmin, showToast, formatPrice };
+window.app = { logout, requireAuth, requireAdmin, showToast, showConfirm, formatPrice };
 
 initApp();

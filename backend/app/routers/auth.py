@@ -39,6 +39,7 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     return TokenResponse(
         access_token=token, user_id=user.user_id,
         name=user.name, email=user.email, role=user.role,
+        author_application_status=user.author_application_status,
     )
 
 
@@ -54,6 +55,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         access_token=token, user_id=user.user_id,
         name=user.name, email=user.email, role=user.role,
         avatar_url=user.avatar_url,
+        author_application_status=user.author_application_status,
     )
 
 
@@ -86,6 +88,7 @@ def oauth_callback(data: OAuthCallbackRequest, db: Session = Depends(get_db)):
         access_token=token, user_id=user.user_id,
         name=user.name, email=user.email, role=user.role,
         avatar_url=user.avatar_url,
+        author_application_status=user.author_application_status,
     )
 
 
@@ -161,4 +164,5 @@ def google_login(body: GoogleTokenRequest, db: Session = Depends(get_db)):
         email=user.email,
         role=user.role,
         avatar_url=user.avatar_url,
+        author_application_status=user.author_application_status,
     )

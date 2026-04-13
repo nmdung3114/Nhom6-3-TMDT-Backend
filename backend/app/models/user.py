@@ -13,6 +13,8 @@ class User(Base):
     phone = Column(String(20), nullable=True)
     role = Column(String(20), nullable=False, default="learner")
     status = Column(String(20), nullable=False, default="active")
+    author_application_status = Column(String(20), nullable=True)  # None | 'pending' | 'rejected'
+    author_application_data = Column(Text, nullable=True)  # JSON application payload
     avatar_url = Column(Text, nullable=True)
     oauth_provider = Column(String(50), nullable=True)
     oauth_id = Column(String(255), nullable=True)

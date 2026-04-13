@@ -1,0 +1,3 @@
+ALTER TABLE users ADD COLUMN author_application_status VARCHAR(20) DEFAULT NULL;
+ALTER TABLE products ADD COLUMN rejection_reason TEXT DEFAULT NULL;
+SHOW COLUMNS FROM users;

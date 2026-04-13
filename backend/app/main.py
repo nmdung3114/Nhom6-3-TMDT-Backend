@@ -9,7 +9,7 @@ from app.config import settings
 from app.core.middleware import ProcessTimeMiddleware, SecurityHeadersMiddleware
 from app.core.exceptions import AppException
 from app.routers import auth, users, products, cart, orders, learning, payment, admin, ai
-from app.routers import wishlist, notifications, certificates, blog
+from app.routers import wishlist, notifications, certificates, blog, instructor
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -59,6 +59,7 @@ app.include_router(wishlist.router)
 app.include_router(notifications.router)
 app.include_router(certificates.router)
 app.include_router(blog.router)
+app.include_router(instructor.router)
 
 # ── Upload dir ─────────────────────────────────────────────
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

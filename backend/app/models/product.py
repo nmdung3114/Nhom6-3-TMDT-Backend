@@ -32,6 +32,7 @@ class Product(Base):
     total_enrolled = Column(Integer, default=0)
     average_rating = Column(Numeric(3, 2), default=0)
     review_count = Column(Integer, default=0)
+    rejection_reason = Column(Text, nullable=True)  # Lý do Admin từ chối
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

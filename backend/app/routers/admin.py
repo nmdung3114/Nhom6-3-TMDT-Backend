@@ -770,3 +770,183 @@ def _recalc_total_lessons(db: Session, course_id: int):
         course.total_lessons = count
         db.commit()
 
+
+# ── Course Approval ────────────────────────────────────────
+
+@router.get("/courses/pending")
+def admin_list_pending_courses(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Danh sách khóa học đang chờ duyệt."""
+    query = db.query(Product).options(
+        joinedload(Product.author),
+        joinedload(Product.category),
+        joinedload(Product.course),
+    ).filter(Product.status == "pending_approval")
+    total = query.count()
+    products = query.order_by(Product.updated_at.desc()).offset(
+        (page - 1) * page_size
+    ).limit(page_size).all()
+
+    result = []
+    for p in products:
+        result.append({
+            "product_id": p.product_id, "name": p.name,
+            "product_type": p.product_type, "status": p.status,
+            "price": float(p.price),
+            "thumbnail_url": p.thumbnail_url,
+            "author_id": p.author_id,
+            "author_name": p.author.name if p.author else None,
+            "author_email": p.author.email if p.author else None,
+            "category": p.category.name if p.category else None,
+            "level": p.course.level if p.course else None,
+            "total_lessons": p.course.total_lessons if p.course else 0,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+            "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+        })
+    return {"courses": result, "total": total, "page": page, "page_size": page_size}
+
+
+@router.post("/courses/{product_id}/approve")
+def admin_approve_course(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Duyệt khóa học → chuyển sang active (hiển thị trên store)."""
+    product = db.query(Product).filter(Product.product_id == product_id).first()
+    if not product:
+        raise NotFoundException("Khóa học không tồn tại")
+    if product.status != "pending_approval":
+        raise BadRequestException(f"Chỉ duyệt được khóa học đang chờ duyệt (hiện tại: {product.status})")
+
+    product.status = "active"
+    product.rejection_reason = None
+
+    from app.services.notification_service import notify_course_approved
+    notify_course_approved(db, product.author_id, product_id, product.name)
+
+    db.commit()
+    return {"message": f"Đã duyệt khóa học '{product.name}'. Khóa học đã được đăng công khai!"}
+
+
+@router.post("/courses/{product_id}/reject")
+def admin_reject_course(
+    product_id: int,
+    reason: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Từ chối khóa học với lý do cụ thể."""
+    if not reason or not reason.strip():
+        raise BadRequestException("Phải nhập lý do từ chối")
+
+    product = db.query(Product).filter(Product.product_id == product_id).first()
+    if not product:
+        raise NotFoundException("Khóa học không tồn tại")
+    if product.status != "pending_approval":
+        raise BadRequestException(f"Chỉ từ chối khóa học đang chờ duyệt (hiện tại: {product.status})")
+
+    product.status = "rejected"
+    product.rejection_reason = reason.strip()
+
+    from app.services.notification_service import notify_course_rejected
+    notify_course_rejected(db, product.author_id, product_id, product.name, reason.strip())
+
+    db.commit()
+    return {"message": "Đã từ chối khóa học. Tác giả đã được thông báo để chỉnh sửa."}
+
+
+@router.post("/courses/{product_id}/unpublish")
+def admin_unpublish_course(
+    product_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Gỡ khóa học khẩn cấp (active → inactive). Người đã mua vẫn học được."""
+    product = db.query(Product).filter(Product.product_id == product_id).first()
+    if not product:
+        raise NotFoundException("Khóa học không tồn tại")
+    product.status = "inactive"
+    db.commit()
+    return {"message": f"Đã gỡ khóa học '{product.name}' khỏi hệ thống."}
+
+
+# ── Author Applications ────────────────────────────────────
+
+@router.get("/author-applications")
+def admin_list_author_applications(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Danh sách Learner đang chờ được duyệt làm Giảng viên."""
+    query = db.query(User).filter(
+        User.author_application_status == "pending",
+    )
+    total = query.count()
+    users = query.order_by(User.updated_at.desc()).offset(
+        (page - 1) * page_size
+    ).limit(page_size).all()
+    return {
+        "applications": [
+            {
+                "user_id": u.user_id, "name": u.name, "email": u.email,
+                "avatar_url": u.avatar_url, "phone": u.phone,
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+                "author_application_data": u.author_application_data
+            }
+            for u in users
+        ],
+        "total": total, "page": page, "page_size": page_size,
+    }
+
+
+@router.post("/author-applications/{user_id}/approve")
+def admin_approve_author(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Phê duyệt đơn → đổi role thành 'author'."""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise NotFoundException("Người dùng không tồn tại")
+    if user.author_application_status != "pending":
+        raise BadRequestException("Không có đơn đăng ký đang chờ duyệt")
+
+    user.role = "author"
+    user.author_application_status = None
+
+    from app.services.notification_service import notify_author_approved
+    notify_author_approved(db, user_id)
+
+    db.commit()
+    return {"message": f"Đã phê duyệt {user.name} làm Giảng viên!"}
+
+
+@router.post("/author-applications/{user_id}/reject")
+def admin_reject_author(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    """Từ chối đơn → user vẫn là learner, có thể nộp lại."""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise NotFoundException("Người dùng không tồn tại")
+    if user.author_application_status != "pending":
+        raise BadRequestException("Không có đơn đăng ký đang chờ duyệt")
+
+    user.author_application_status = "rejected"
+
+    from app.services.notification_service import notify_author_rejected
+    notify_author_rejected(db, user_id)
+
+    db.commit()
+    return {"message": "Đã từ chối đơn đăng ký giảng viên"}
+

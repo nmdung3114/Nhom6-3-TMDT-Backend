@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, UploadFile, File
+import base64
+import os
+import uuid
+import json
+from datetime import datetime
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import UserResponse, UserUpdate, AuthorApplicationRequest
 from app.schemas.auth import ChangePasswordRequest
 from app.core.security import verify_password, get_password_hash
 from app.core.exceptions import BadRequestException
@@ -66,6 +71,36 @@ async def upload_avatar(
     db.refresh(current_user)
     return current_user
 
+@router.post("/upload-cv")
+async def upload_cv(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """Upload CV document to server."""
+    allowed_types = {
+        "application/pdf": ".pdf",
+        "application/msword": ".doc",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx"
+    }
+    if file.content_type not in allowed_types:
+        raise BadRequestException("Chỉ chấp nhận file định dạng PDF hoặc Word (.doc, .docx)")
+
+    from app.config import settings
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    
+    ext = allowed_types[file.content_type]
+    filename = f"cv_{current_user.user_id}_{uuid.uuid4().hex[:8]}{ext}"
+    filepath = os.path.join(settings.UPLOAD_DIR, filename)
+    
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:
+        raise BadRequestException("Dung lượng file CV không được vượt quá 10MB")
+        
+    with open(filepath, "wb") as f:
+        f.write(contents)
+        
+    return {"url": f"/uploads/{filename}"}
+
 
 @router.post("/change-password")
 def change_password(
@@ -82,4 +117,47 @@ def change_password(
     current_user.password_hash = get_password_hash(data.new_password)
     db.commit()
     return {"message": "Đổi mật khẩu thành công"}
+
+
+@router.post("/apply-author")
+def apply_author(
+    data: AuthorApplicationRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Learner nộp đơn xin trở thành Giảng viên."""
+    if current_user.role == "author":
+        raise BadRequestException("Bạn đã là Giảng viên rồi!")
+    if current_user.role == "admin":
+        raise BadRequestException("Tài khoản Admin không cần đăng ký làm Giảng viên")
+    if current_user.author_application_status == "pending":
+        raise BadRequestException("Đơn đăng ký của bạn đang chờ xét duyệt. Vui lòng đợi!")
+
+    current_user.author_application_status = "pending"
+    
+    application_data = {
+        "specialization": data.specialization,
+        "experience": data.experience,
+        "portfolio_url": data.portfolio_url,
+        "course_topic": data.course_topic,
+        "cv_url": data.cv_url,
+        "submitted_at": datetime.now().isoformat()
+    }
+    current_user.author_application_data = json.dumps(application_data)
+
+    from app.services.notification_service import notify_author_application
+    notify_author_application(db, current_user.user_id, current_user.name)
+
+    db.commit()
+    return {"message": "Đơn đăng ký làm Giảng viên đã được gửi! Admin sẽ xem xét trong thời gian sớm nhất."}
+
+
+@router.get("/author-status")
+def get_author_status(current_user: User = Depends(get_current_user)):
+    """Trả về trạng thái đơn đăng ký giảng viên của user hiện tại."""
+    return {
+        "role": current_user.role,
+        "author_application_status": current_user.author_application_status,
+    }
+
 

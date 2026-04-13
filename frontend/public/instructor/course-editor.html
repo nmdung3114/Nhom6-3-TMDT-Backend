@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trình biên tập khóa học - ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+  <style>
+    .editor-page { padding-top: 64px; max-width: 900px; margin: 0 auto; padding-left: 24px; padding-right: 24px; padding-bottom: 60px; }
+    .editor-header { display: flex; align-items: center; justify-content: space-between; margin: 28px 0 24px; flex-wrap: wrap; gap: 12px; }
+    .editor-header h1 { font-size: 1.5rem; font-weight: 700; }
+    .tabs { display: flex; gap: 2px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px; padding: 4px; margin-bottom: 28px; }
+    .tab-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; background: transparent; color: var(--color-text-secondary); cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+    .tab-btn.active { background: var(--color-primary); color: #fff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-section { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+    .form-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--color-text); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:640px) { .form-row { grid-template-columns: 1fr; } }
+    .module-card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+    .module-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: var(--color-surface); cursor: pointer; }
+    .module-title-input { flex: 1; border: none; background: transparent; font-weight: 600; font-size: 0.95rem; color: var(--color-text); outline: none; }
+    .module-actions { display: flex; gap: 6px; }
+    .module-lessons { padding: 0 16px 12px; }
+    .lesson-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--color-border); }
+    .lesson-item:last-child { border-bottom: none; }
+    .lesson-title-input { flex: 1; border: 1px solid var(--color-border); border-radius: 6px; padding: 6px 10px; background: var(--color-surface); color: var(--color-text); font-size: 0.88rem; }
+    .lesson-title-input:focus { border-color: var(--color-primary); outline: none; }
+    .status-banner { border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 12px; font-size: 0.9rem; }
+    .banner-pending { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--color-warning); }
+    .banner-active { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--color-success); }
+    .banner-rejected { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--color-error); }
+    .add-lesson-row { display: flex; gap: 8px; margin-top: 8px; }
+    .add-lesson-row input { flex: 1; border: 1px solid var(--color-border); border-radius: 6px; padding: 7px 10px; background: var(--color-surface); color: var(--color-text); font-size: 0.88rem; }
+    .add-lesson-row input:focus { border-color: var(--color-primary); outline: none; }
+    .spinner-sm { width: 16px; height: 16px; border: 2px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+
+  <nav class="navbar" id="navbar">
+    <div class="container navbar__inner">
+      <a href="/instructor/courses.html" class="navbar__brand">
+        <div class="navbar__brand-icon">←</div>
+        <span class="navbar__brand-text">Quay lại danh sách</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-ghost btn-sm" id="btn-save-draft" onclick="saveCourse()">💾 Lưu nháp</button>
+        <button class="btn btn-primary btn-sm" id="btn-submit" onclick="submitForReview()" style="display:none">🚀 Gửi duyệt</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="editor-page">
+    <div class="editor-header">
+      <h1 id="page-title">✏️ Tạo khóa học mới</h1>
+      <span id="status-badge" style="display:none"></span>
+    </div>
+
+    <div id="status-banner"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('info', this)">📋 Thông tin cơ bản</button>
+      <button class="tab-btn" onclick="switchTab('curriculum', this)">📚 Giáo trình</button>
+    </div>
+
+    <!-- Tab: Basic Info -->
+    <div class="tab-content active" id="tab-info">
+      <div class="form-section">
+        <h3>Thông tin khóa học</h3>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Tên khóa học *</label>
+          <input class="form-control" id="f-name" placeholder="VD: Lập trình Python từ A đến Z" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Giá bán (đ) *</label>
+            <input class="form-control" id="f-price" type="number" min="0" placeholder="VD: 299000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Giá gốc (đ)</label>
+            <input class="form-control" id="f-original-price" type="number" min="0" placeholder="VD: 599000">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Loại *</label>
+            <select class="form-control" id="f-type">
+              <option value="course">🎬 Khóa học video</option>
+              <option value="ebook">📖 Ebook</option>
+            </select>
+          </div>
+          <div class="form-group" id="level-group">
+            <label class="form-label">Cấp độ</label>
+            <select class="form-control" id="f-level">
+              <option value="">Chọn cấp độ</option>
+              <option value="Beginner">Beginner - Cơ bản</option>
+              <option value="Intermediate">Intermediate - Trung cấp</option>
+              <option value="Advanced">Advanced - Nâng cao</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Danh mục</label>
+          <select class="form-control" id="f-category"></select>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">URL Thumbnail</label>
+          <input class="form-control" id="f-thumbnail" placeholder="https://...">
+          <div id="thumb-preview" style="margin-top:8px;display:none">
+            <img id="thumb-img" style="height:100px;border-radius:8px;object-fit:cover" alt="Thumbnail preview">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Mô tả ngắn</label>
+          <input class="form-control" id="f-short-desc" placeholder="1-2 câu mô tả nổi bật">
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Mô tả đầy đủ</label>
+          <textarea class="form-control" id="f-desc" rows="5" placeholder="Mô tả chi tiết về khóa học..."></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Bạn sẽ học được gì?</label>
+          <textarea class="form-control" id="f-learn" rows="3" placeholder="Mỗi điểm cách nhau bằng dấu xuống dòng..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Yêu cầu đầu vào</label>
+          <textarea class="form-control" id="f-requirements" rows="2" placeholder="VD: Biết HTML cơ bản..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Curriculum -->
+    <div class="tab-content" id="tab-curriculum">
+      <div id="curriculum-locked-banner" style="display:none" class="status-banner banner-pending">
+        <span>⏳</span>
+        <span>Khóa học đang chờ duyệt – bạn không thể chỉnh sửa giáo trình lúc này.</span>
+      </div>
+
+      <div id="modules-container"></div>
+
+      <button class="btn btn-secondary btn-sm" id="btn-add-module" onclick="addModule()" style="margin-top:12px">
+        + Thêm Chương mới
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/instructor/course-editor.js"></script>
+</body>
+</html>

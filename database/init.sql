@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(20),
     role VARCHAR(20) NOT NULL DEFAULT 'learner',   -- learner | admin | author
     status VARCHAR(20) NOT NULL DEFAULT 'active',  -- active | suspended
+    author_application_status VARCHAR(20),         -- null | pending | rejected
     avatar_url MEDIUMTEXT,
     oauth_provider VARCHAR(50),                    -- google | facebook | null
     oauth_id VARCHAR(255),
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS products (
     total_enrolled INT DEFAULT 0,
     average_rating DECIMAL(3,2) DEFAULT 0,
     review_count INT DEFAULT 0,
+    rejection_reason TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,

@@ -66,7 +66,23 @@ export function renderNavbar() {
     return;
   }
 
-  const isAdmin = AppState.user?.role === 'admin';
+  const user = AppState.user;
+  const isAdmin = user?.role === 'admin';
+  const isAuthor = user?.role === 'author';
+  const isLearner = user?.role === 'learner';
+
+  // Instructor / author-apply items in dropdown
+  const instructorItem = (isAdmin || isAuthor)
+    ? `<a href="/instructor/courses.html" class="dropdown-item" style="color:var(--color-primary);font-weight:600">🎓 Kênh tác giả</a>`
+    : '';
+  let applyItem = '';
+  if (isLearner) {
+    if (user.author_application_status === 'pending') {
+      applyItem = `<a href="#" class="dropdown-item" id="apply-author-btn" style="color:var(--color-primary);pointer-events:none;opacity:0.6">⏳ Đơn đang chờ duyệt</a>`;
+    } else {
+      applyItem = `<a href="#" class="dropdown-item" id="apply-author-btn" style="color:var(--color-primary)">✨ Đăng ký làm Giảng viên</a>`;
+    }
+  }
 
   container.innerHTML = `
     <a href="/" class="navbar__brand">
@@ -81,7 +97,7 @@ export function renderNavbar() {
     <nav class="navbar__nav">
       <a href="/products/list.html" class="navbar__nav-link"><span>Khóa học</span></a>
       <a href="/products/list.html?type=ebook" class="navbar__nav-link"><span>Ebook</span></a>
-      ${!AppState.user ? `
+      ${!user ? `
         <button id="theme-toggle" class="theme-toggle" title="Đổi chủ đề sáng/tối" aria-label="Đổi chủ đề">🌙</button>
         <a href="/auth/login.html" class="btn btn-sm btn-secondary">Đăng nhập</a>
         <a href="/auth/register.html" class="btn btn-sm btn-primary" style="margin-left:8px">Đăng ký</a>
@@ -94,18 +110,20 @@ export function renderNavbar() {
           <div class="navbar__user">
             <button id="user-menu-btn" class="navbar__user-btn">
               <div class="navbar__avatar">
-                ${AppState.user.avatar_url
-                  ? `<img src="${AppState.user.avatar_url}" alt="">`
-                  : AppState.user.name.charAt(0).toUpperCase()}
+                ${user.avatar_url
+                  ? `<img src="${user.avatar_url}" alt="">`
+                  : user.name.charAt(0).toUpperCase()}
               </div>
-              <span class="navbar__user-name">${AppState.user.name}</span>
+              <span class="navbar__user-name">${user.name}</span>
               <span class="navbar__user-chevron">▾</span>
             </button>
             <div id="user-dropdown" class="dropdown-menu">
               <a href="/profile/index.html" class="dropdown-item">Hồ sơ của tôi</a>
               <a href="/profile/index.html#my-courses" class="dropdown-item">Khóa học của tôi</a>
               <a href="/orders/index.html" class="dropdown-item">Đơn hàng</a>
-              ${isAdmin ? `<a href="/admin/dashboard.html" class="dropdown-item">Quản trị</a>` : ''}
+              ${isAdmin ? `<a href="/admin/dashboard.html" class="dropdown-item">⚙️ Quản trị</a>` : ''}
+              ${instructorItem}
+              ${applyItem}
               <div class="dropdown-divider"></div>
               <div class="dropdown-item danger" onclick="app.logout()">Đăng xuất</div>
             </div>
@@ -141,6 +159,9 @@ function updateNavAuthState() {
     }
 
     if (adminItem) adminItem.style.display = AppState.user.role === 'admin' ? 'flex' : 'none';
+
+    // Bind apply-author button if it exists (static header pages)
+    _bindApplyAuthorBtn();
     updateCartBadge();
   } else {
     navAuth && (navAuth.style.display = 'flex');
@@ -150,6 +171,29 @@ function updateNavAuthState() {
   // Highlight active nav link
   document.querySelectorAll('.navbar__nav-link').forEach(link => {
     link.classList.toggle('active', link.href === location.href);
+  });
+}
+
+function _bindApplyAuthorBtn() {
+  const btn = document.getElementById('apply-author-btn');
+  if (!btn || btn._applyBound) return;
+  btn._applyBound = true;
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const status = AppState.user?.author_application_status;
+    if (status === 'pending') {
+      window.app?.showToast('Đơn của bạn đang chờ xét duyệt!', 'info');
+      return;
+    }
+    
+    // Call the new modal flow from app.js
+    const payload = await window.app.showAuthorApplicationForm();
+    if (payload) {
+      // the modal handles the api call, so we just update UI
+      btn.textContent = '⏳ Đơn đang chờ duyệt';
+      btn.style.pointerEvents = 'none';
+      btn.style.opacity = '0.6';
+    }
   });
 }
 
@@ -196,6 +240,9 @@ function setupNavbarHandlers() {
       }
     });
   }
+
+  // Bind apply-author btn rendered by renderNavbar()
+  _bindApplyAuthorBtn();
 
   // Global search input (navbar search bar)
   const searchInput = document.getElementById('search-input');

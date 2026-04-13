@@ -22,6 +22,7 @@ class TokenResponse(BaseModel):
     email: str
     role: str
     avatar_url: Optional[str] = None
+    author_application_status: Optional[str] = None
 
 
 class OAuthCallbackRequest(BaseModel):
