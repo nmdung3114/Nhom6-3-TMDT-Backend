@@ -249,12 +249,12 @@ window.deleteLesson = async function(lessonId) {
   }
 };
 
-window.addEventListener('app:ready', async () => {
-  const user = AppState.user;
+setTimeout(async () => {
+  const user = window.AppState?.user || JSON.parse(localStorage.getItem('el_user') || 'null');
   if (!user || !['author', 'admin'].includes(user.role)) {
     window.location.href = '/';
     return;
   }
   await loadCategories();
   await loadCourse();
-});
+}, 100);

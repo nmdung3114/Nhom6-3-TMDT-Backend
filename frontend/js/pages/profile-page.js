@@ -6,7 +6,7 @@ import { AppState, requireAuth, showToast, formatPrice, formatDate, renderProduc
 if (!requireAuth()) throw new Error('Auth required');
 
 // ── Tab navigation ─────────────────────────────────────────
-const tabs = ['my-courses', 'profile-info', 'change-password', 'my-orders', 'wishlist'];
+const tabs = ['my-courses', 'profile-info', 'change-password', 'my-orders', 'wishlist', 'become-instructor'];
 
 function activateTab(tabId) {
   tabs.forEach(t => {
@@ -16,6 +16,7 @@ function activateTab(tabId) {
   if (tabId === 'my-courses') loadMyCourses();
   if (tabId === 'my-orders')  loadMyOrders();
   if (tabId === 'wishlist')   loadWishlist();
+  if (tabId === 'become-instructor') loadInstructorStatus();
 }
 
 document.querySelectorAll('.profile-nav-item').forEach(el => {
@@ -25,6 +26,7 @@ document.querySelectorAll('.profile-nav-item').forEach(el => {
 // Auto-activate tab from hash
 const hash = location.hash.replace('#', '') || 'my-courses';
 activateTab(tabs.includes(hash) ? hash : 'my-courses');
+if (hash === 'become-instructor') loadInstructorStatus();
 
 // ── User info ──────────────────────────────────────────────
 function setAvatarImage(el, url, fallbackName) {
@@ -272,3 +274,122 @@ window.removeWishlist = async (productId, btn) => {
   }
 };
 
+
+// ── Become Instructor ──────────────────────────────────────
+let _uploadedCvUrl = null;
+
+async function loadInstructorStatus() {
+  const container = document.getElementById('instructor-status-box');
+  if (!container) return;
+  try {
+    const data = await api.get('/users/author-status', true);
+    const status = data.author_application_status;
+    const role   = data.role;
+
+    const form      = document.getElementById('instructor-apply-form');
+    const statusBox = document.getElementById('instructor-app-status');
+
+    if (role === 'author' || role === 'admin') {
+      container.innerHTML = `
+        <div style="text-align:center;padding:40px;">
+          <div style="font-size:3rem;margin-bottom:16px">🎓</div>
+          <div style="font-size:1.2rem;font-weight:700;margin-bottom:8px">Bạn đã là Giảng viên!</div>
+          <p style="color:var(--color-text-muted)">Truy cập kênh giảng viên để quản lý khóa học của bạn.</p>
+          <a href="/instructor/dashboard.html" class="btn btn-primary" style="margin-top:16px">Kênh Giảng viên →</a>
+        </div>`;
+      return;
+    }
+
+    if (status === 'pending') {
+      if (statusBox) statusBox.innerHTML = `
+        <div style="background:var(--color-warning-bg,#fef9c3);border:1px solid #fde047;border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:1.5rem">⏳</span>
+          <div><strong>Đơn đăng ký của bạn đang được xét duyệt.</strong><br>
+          <span style="font-size:0.85rem;color:var(--color-text-muted)">Admin sẽ phản hồi trong thời gian sớm nhất.</span></div>
+        </div>`;
+      if (form) form.style.display = 'none';
+      return;
+    }
+
+    if (status === 'rejected') {
+      if (statusBox) statusBox.innerHTML = `
+        <div style="background:var(--color-error-bg,#fee2e2);border:1px solid #fca5a5;border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:12px">
+          <span style="font-size:1.5rem">❌</span>
+          <div><strong>Đơn đăng ký bị từ chối.</strong><br>
+          <span style="font-size:0.85rem;color:var(--color-text-muted)">Bạn có thể nộp lại đơn mới bên dưới.</span></div>
+        </div>`;
+    }
+  } catch(e) {
+    console.error('Error loading instructor status:', e);
+  }
+}
+
+// CV Upload
+document.getElementById('cv-file-input')?.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if (!allowed.includes(file.type)) {
+    showToast('Chỉ chấp nhận file PDF hoặc Word (.doc, .docx)', 'error');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) { showToast('File CV không được vượt quá 10MB', 'error'); return; }
+
+  const cvStatus = document.getElementById('cv-upload-status');
+  const cvLabel  = document.getElementById('cv-upload-label');
+  if (cvStatus) { cvStatus.style.display = 'flex'; cvStatus.textContent = '⏳ Đang tải lên...'; cvStatus.style.color = 'var(--color-accent)'; }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = localStorage.getItem('el_token');
+    const res = await fetch('/api/users/upload-cv', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.detail || 'Upload thất bại'); }
+    const data = await res.json();
+    _uploadedCvUrl = data.url;
+    if (cvStatus) { cvStatus.textContent = `✅ ${file.name} đã tải lên`; cvStatus.style.color = 'var(--color-success)'; }
+    if (cvLabel)  cvLabel.textContent = `📎 ${file.name}`;
+  } catch(err) {
+    showToast(err.message, 'error');
+    _uploadedCvUrl = null;
+    if (cvStatus) { cvStatus.textContent = '❌ Upload thất bại'; cvStatus.style.color = 'var(--color-error)'; }
+  }
+});
+
+// Submit Application
+document.getElementById('instructor-apply-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type=submit]');
+  const specialization = document.getElementById('instr-specialization').value.trim();
+  const experience     = document.getElementById('instr-experience').value.trim();
+  const portfolio_url  = document.getElementById('instr-portfolio').value.trim();
+  const course_topic   = document.getElementById('instr-course-topic').value.trim();
+
+  if (!specialization || !experience || !course_topic) {
+    showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)', 'error');
+    return;
+  }
+
+  btn.classList.add('loading');
+  try {
+    await api.post('/users/apply-author', {
+      specialization,
+      experience,
+      portfolio_url: portfolio_url || null,
+      course_topic,
+      cv_url: _uploadedCvUrl || null,
+    }, true);
+    showToast('🎉 Đơn đăng ký đã được gửi! Admin sẽ xét duyệt sớm nhất.', 'success');
+    e.target.reset();
+    _uploadedCvUrl = null;
+    loadInstructorStatus();
+  } catch(err) {
+    showToast(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading');
+  }
+});

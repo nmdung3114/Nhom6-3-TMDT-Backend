@@ -124,14 +124,14 @@ export function setupCourses() {
     });
   });
 
-  window.addEventListener('app:ready', () => {
-    const user = AppState.user;
+  setTimeout(() => {
+    const user = window.AppState?.user || JSON.parse(localStorage.getItem('el_user') || 'null');
     if (!user || !['author', 'admin'].includes(user.role)) {
       window.location.href = '/';
       return;
     }
     loadCourses();
-  });
+  }, 100);
 }
 
 setupCourses();

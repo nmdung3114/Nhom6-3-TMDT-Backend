@@ -116,7 +116,7 @@ def notify_author_application(db: Session, applicant_user_id: int, applicant_nam
         db, "info",
         f"📝 Đơn xin giảng viên từ {applicant_name}",
         f"Người dùng {applicant_name} (#{applicant_user_id}) vừa gửi đơn xin trở thành Giảng viên. Vui lòng kiểm duyệt!",
-        "/admin/author-applications.html",
+        "/admin/course-approvals.html",
     )
 
 

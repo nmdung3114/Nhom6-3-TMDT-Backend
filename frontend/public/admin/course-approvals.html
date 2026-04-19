@@ -340,7 +340,7 @@
     window.approveAuthor = async function(id, name, btn) {
       const isConfirmed = await window.app.showConfirm('Duyệt giảng viên', `Phê duyệt ${name} làm Giảng viên?`);
       if (!isConfirmed) return;
-      btn.disabled = true; btn.textContent = '⏳...';
+      if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
       try {
         await api.post(`/admin/author-applications/${id}/approve`, null, true);
         app.showToast(`🎉 Đã phê duyệt ${name} làm Giảng viên!`, 'success');
@@ -349,14 +349,14 @@
         count.textContent = Math.max(0, parseInt(count.textContent) - 1);
       } catch (err) {
         app.showToast(err.message, 'error');
-        btn.disabled = false; btn.textContent = '✅ Phê duyệt';
+        if (btn) { btn.disabled = false; btn.textContent = '✅ Phê duyệt'; }
       }
     };
 
     window.rejectAuthor = async function(id, btn) {
       const isConfirmed = await window.app.showConfirm('Từ chối đơn', 'Từ chối đơn đăng ký này?');
       if (!isConfirmed) return;
-      btn.disabled = true;
+      if (btn) btn.disabled = true;
       try {
         await api.post(`/admin/author-applications/${id}/reject`, null, true);
         app.showToast('Đã từ chối đơn đăng ký', 'info');
@@ -365,18 +365,18 @@
         count.textContent = Math.max(0, parseInt(count.textContent) - 1);
       } catch (err) {
         app.showToast(err.message, 'error');
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
       }
     };
 
-    window.addEventListener('app:ready', async () => {
+    setTimeout(async () => {
       const user = AppState.user;
       if (!user || user.role !== 'admin') {
         window.location.href = '/';
         return;
       }
       await Promise.all([loadPendingCourses(), loadAuthorApplications()]);
-    });
+    }, 100);
   </script>
 </body>
 </html>

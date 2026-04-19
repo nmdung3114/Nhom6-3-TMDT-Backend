@@ -53,6 +53,10 @@
               Yêu thích
             </div>
             <div class="divider"></div>
+            <div class="profile-nav-item" id="nav-become-instructor" data-tab="become-instructor" style="color:var(--color-accent-light)">
+              🎓 Đăng ký Giảng viên
+            </div>
+            <div class="divider"></div>
             <div class="profile-nav-item" style="color:var(--color-error)" onclick="app.logout()">
               Đăng xuất
             </div>
@@ -154,6 +158,56 @@
             </div>
             <div id="wishlist-grid" class="my-courses-grid">
               <div class="loading-overlay"><div class="spinner"></div></div>
+            </div>
+          </div>
+
+          <!-- Become Instructor Tab -->
+          <div id="tab-become-instructor" class="profile-section">
+            <h2 class="profile-section__title">🎓 Đăng ký làm Giảng viên</h2>
+            <p style="color:var(--color-text-muted);margin-bottom:24px;line-height:1.7">Chia sẻ kiến thức của bạn với hàng nghìn học viên. Điền đơn đăng ký bên dưới để bắt đầu hành trình giảng dạy!</p>
+
+            <div id="instructor-status-box">
+              <div id="instructor-app-status" style="margin-bottom:20px"></div>
+
+              <form id="instructor-apply-form">
+                <div class="form-group">
+                  <label class="form-label">Chuyên môn / Lĩnh vực <span class="required">*</span></label>
+                  <input id="instr-specialization" type="text" class="form-control" placeholder="VD: Lập trình Web, Thiết kế đồ họa, Marketing..." required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Kinh nghiệm giảng dạy / làm việc <span class="required">*</span></label>
+                  <textarea id="instr-experience" class="form-control" rows="4" placeholder="Mô tả kinh nghiệm của bạn: số năm kinh nghiệm, dự án nổi bật, thành tựu..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Website / Portfolio (không bắt buộc)</label>
+                  <input id="instr-portfolio" type="url" class="form-control" placeholder="https://your-portfolio.com">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Tóm tắt khóa học dự kiến <span class="required">*</span></label>
+                  <textarea id="instr-course-topic" class="form-control" rows="3" placeholder="VD: Tôi muốn dạy React từ cơ bản đến nâng cao, hướng đến người mới bắt đầu..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Hồ sơ CV (PDF / Word, tối đa 10MB)</label>
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    <label for="cv-file-input" class="btn btn-secondary" id="cv-upload-label" style="cursor:pointer;margin:0">
+                      📎 Chọn file CV
+                    </label>
+                    <input type="file" id="cv-file-input" accept=".pdf,.doc,.docx" style="display:none">
+                    <span id="cv-upload-status" style="font-size:0.82rem;display:none"></span>
+                  </div>
+                  <div class="form-hint">CV giúp Admin xét duyệt nhanh hơn. Hỗ trợ định dạng PDF, DOC, DOCX.</div>
+                </div>
+
+                <div style="padding:16px;background:var(--color-bg-secondary);border-radius:var(--radius-md);border:1px solid var(--color-border);margin-bottom:20px;font-size:0.85rem;color:var(--color-text-muted);line-height:1.6">
+                  📌 Bằng cách gửi đơn này, bạn xác nhận rằng thông tin cung cấp là chính xác và cam kết tạo nội dung chất lượng cao trên nền tảng.
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="min-width:180px" id="instructor-submit-btn">🚀 Gửi đơn đăng ký</button>
+              </form>
             </div>
           </div>
         </div>

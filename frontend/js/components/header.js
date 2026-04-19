@@ -186,13 +186,9 @@ function _bindApplyAuthorBtn() {
       return;
     }
     
-    // Call the new modal flow from app.js
-    const payload = await window.app.showAuthorApplicationForm();
-    if (payload) {
-      // the modal handles the api call, so we just update UI
-      btn.textContent = '⏳ Đơn đang chờ duyệt';
-      btn.style.pointerEvents = 'none';
-      btn.style.opacity = '0.6';
+    window.location.href = '/profile/index.html#become-instructor';
+    if (window.location.pathname.includes('/profile/')) {
+        window.location.reload();
     }
   });
 }
