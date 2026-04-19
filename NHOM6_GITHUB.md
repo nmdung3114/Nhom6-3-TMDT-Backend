@@ -2,6 +2,8 @@
 
 **Repository nộp thầy:** [https://github.com/nmdung3114/Nhom6-3-TMDT-Backend](https://github.com/nmdung3114/Nhom6-3-TMDT-Backend)
 
+> **Nội dung repo:** đã đẩy **cùng mã nguồn** với monorepo `ecommerce-learning-platform` (backend + `database/` + frontend + Docker/nginx) để chạy end-to-end và nộp đủ chứng cứ BTL. Hai chức năng BTL nằm chủ yếu ở `backend/` và `database/` — danh sách file chi tiết ở dưới.
+
 ## Mô hình nhánh
 
 | Nhánh | Mục đích |
