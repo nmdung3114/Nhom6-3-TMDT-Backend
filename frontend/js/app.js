@@ -418,7 +418,8 @@ export function showAuthorApplicationForm() {
 
 // ── Formatting ─────────────────────────────────────────────
 export function formatPrice(amount) {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  const num = Number(amount);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(isNaN(num) ? 0 : num);
 }
 
 export function formatDate(dateStr, showTime = true) {

@@ -285,7 +285,7 @@ window.searchDailyRevenue = async () => {
     
     // Tính toán thống kê cho ngày đó
     const paidOrders = orders.filter(o => o.status === 'paid');
-    const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total_amount, 0);
+    const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
     
     summaryDiv.innerHTML = `
       <div style="padding:15px; background:var(--color-bg-tertiary); border-radius:10px; border-left:4px solid var(--color-accent)">
