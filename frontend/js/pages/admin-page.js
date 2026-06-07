@@ -226,10 +226,12 @@ function renderDailySearchUI() {
   searchCard.style.marginBottom = '24px';
   searchCard.innerHTML = `
     <div class="card__header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px">
-      <h3 style="margin:0">📊 Chi tiết doanh thu theo ngày</h3>
+      <h3 style="margin:0">📊 Chi tiết doanh thu theo khoảng thời gian</h3>
       <div style="display:flex; gap:10px; align-items:center">
-        <input type="date" id="daily-search-date" class="form-control" style="width:180px; margin:0">
-        <button class="btn btn-primary" onclick="searchDailyRevenue()">Tìm kiếm</button>
+        <input type="date" id="range-search-start" class="form-control" style="width:160px; margin:0">
+        <span style="color:var(--color-text-muted)">đến</span>
+        <input type="date" id="range-search-end" class="form-control" style="width:160px; margin:0">
+        <button class="btn btn-primary" onclick="searchRangeRevenue()">Tìm kiếm</button>
       </div>
     </div>
     <div id="daily-search-result" style="padding:20px; display:none">
@@ -254,31 +256,35 @@ function renderDailySearchUI() {
   container.parentNode.insertBefore(searchCard, container);
   
   // Set default date to today
-  document.getElementById('daily-search-date').value = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('range-search-start').value = today;
+  document.getElementById('range-search-end').value = today;
 }
 
-window.searchDailyRevenue = async () => {
-  const date = document.getElementById('daily-search-date').value;
+window.searchRangeRevenue = async () => {
+  const start = document.getElementById('range-search-start').value;
+  const end = document.getElementById('range-search-end').value;
   const resultDiv = document.getElementById('daily-search-result');
   const summaryDiv = document.getElementById('daily-summary-cards');
   const tbody = document.getElementById('daily-orders-tbody');
   
-  if (!date) return;
+  if (!start || !end) {
+    showToast('Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc', 'warning');
+    return;
+  }
   
   resultDiv.style.display = 'block';
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px"><div class="spinner" style="margin:auto"></div></td></tr>';
   
   try {
-    // Gọi API lấy đơn hàng (Lưu ý: Backend cần hỗ trợ filter date hoặc frontend tự lọc từ list 100 đơn gần nhất)
-    const data = await api.get(`/admin/orders?page_size=100&date=${date}`, true);
+    const data = await api.get(`/admin/orders?page_size=100&start_date=${start}&end_date=${end}`, true);
     const orders = data.orders || [];
     
-    // Tính toán thống kê cho ngày đó
     const paidOrders = orders.filter(o => o.status === 'paid');
     const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total_amount, 0);
     
     summaryDiv.innerHTML = `
-      <div style="padding:15px; background:var(--color-bg-tertiary); border-radius:10px; border-left:4px solid var(--color-accent)">
+      <div style="padding:15px; background:var(--color-bg-tertiary); border-radius:10px; border-left:4px solid var(--color-accent-light)">
         <div style="font-size:0.8rem; color:var(--color-text-muted)">Doanh thu</div>
         <div style="font-size:1.4rem; font-weight:700; color:var(--color-accent)">${formatPrice(totalRevenue)}</div>
       </div>
@@ -289,7 +295,7 @@ window.searchDailyRevenue = async () => {
     `;
     
     if (orders.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--color-text-muted)">Không có đơn hàng nào trong ngày này.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--color-text-muted)">Không có đơn hàng nào trong khoảng thời gian này.</td></tr>';
       return;
     }
     

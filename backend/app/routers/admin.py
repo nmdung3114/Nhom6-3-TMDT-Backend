@@ -404,6 +404,9 @@ def admin_list_orders(
     page_size: int = Query(20, ge=1, le=100),
     status: Optional[str] = None,
     user_id: Optional[int] = None,
+    date: Optional[date] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
@@ -416,6 +419,12 @@ def admin_list_orders(
         query = query.filter(Order.status == status)
     if user_id:
         query = query.filter(Order.user_id == user_id)
+    if date:
+        query = query.filter(func.date(Order.created_at) == date)
+    if start_date:
+        query = query.filter(Order.created_at >= datetime.combine(start_date, datetime.min.time()))
+    if end_date:
+        query = query.filter(Order.created_at <= datetime.combine(end_date, datetime.max.time()))
     total = query.count()
     orders = query.order_by(Order.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
@@ -949,4 +958,3 @@ def admin_reject_author(
 
     db.commit()
     return {"message": "Đã từ chối đơn đăng ký giảng viên"}
-
