@@ -1,0 +1,183 @@
+/* ============================================================
+   Button Component — Clean Professional Variants
+   ============================================================ */
+
+/* ── BASE ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  gap: var(--space-2);
+  padding: 10px 22px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  letter-spacing: -0.01em;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Subtle ripple effect */
+.btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.25) 0%, transparent 65%);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+.btn:active::after { opacity: 1; transform: scale(2.5); transition: 0s; }
+
+/* ── VARIANTS ────────────────────────────────────────── */
+.btn-primary {
+  background: var(--gradient-brand);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  color: #fff;
+}
+.btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
+
+.btn-secondary {
+  background: var(--color-bg-card);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-xs);
+}
+.btn-secondary:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:active { transform: translateY(0); }
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--color-border-accent);
+  color: var(--color-accent);
+}
+.btn-outline:hover {
+  background: var(--color-accent-glow);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-secondary);
+}
+.btn-ghost:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.btn-danger {
+  background: var(--color-error-bg);
+  border-color: rgba(239,68,68,0.2);
+  color: var(--color-error);
+}
+.btn-danger:hover {
+  background: rgba(239,68,68,0.12);
+  border-color: var(--color-error);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: rgba(22,163,74,0.10);
+  border-color: rgba(22,163,74,0.25);
+  color: var(--color-success);
+}
+.btn-success:hover {
+  background: rgba(22,163,74,0.16);
+  transform: translateY(-1px);
+}
+
+/* Gradient CTA */
+.btn-cta {
+  background: var(--gradient-cta);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(79,70,229,0.25);
+  font-weight: 600;
+}
+.btn-cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(79,70,229,0.35);
+  color: #fff;
+}
+
+/* ── SIZES ───────────────────────────────────────────── */
+.btn-xs  { padding: 4px 12px;  font-size: 0.76rem; border-radius: var(--radius-sm); }
+.btn-sm  { padding: 7px 16px;  font-size: 0.82rem; border-radius: var(--radius-sm); }
+.btn-lg  { padding: 12px 28px; font-size: 0.95rem; border-radius: var(--radius-lg); }
+.btn-xl  { padding: 14px 34px; font-size: 1rem;    border-radius: var(--radius-lg); font-weight: 600; }
+.btn-block { width: 100%; }
+
+/* ── STATES ──────────────────────────────────────────── */
+.btn:disabled {
+  opacity: 0.45; cursor: not-allowed;
+  transform: none !important; filter: none !important;
+  box-shadow: none !important;
+}
+
+.btn.loading { pointer-events: none; color: transparent !important; }
+.btn.loading::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: rgba(255,255,255,0.85);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ── ICON BUTTON ─────────────────────────────────────── */
+.btn-icon {
+  width: 40px; height: 40px;
+  padding: 0; border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition-fast);
+}
+.btn-icon:hover {
+  border-color: var(--color-border-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-glow);
+  transform: translateY(-1px);
+}
+.btn-icon-sm { width: 34px; height: 34px; font-size: 0.9rem; }
+.btn-icon-lg { width: 48px; height: 48px; font-size: 1.2rem; }
+
+/* ── PILL / CHIP ─────────────────────────────────────── */
+.btn-chip {
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem; font-weight: 600;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-chip:hover, .btn-chip.active {
+  background: var(--color-accent-glow);
+  border-color: var(--color-border-accent);
+  color: var(--color-accent);
+}

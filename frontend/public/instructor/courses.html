@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instructor Dashboard - ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+  <style>
+    .instructor-layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; padding-top: 64px; }
+    .instructor-sidebar { background: var(--color-surface); border-right: 1px solid var(--color-border); padding: 24px 0; position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto; }
+    .instructor-main { padding: 32px; background: var(--color-bg); }
+    .instructor-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 24px; color: var(--color-text-secondary); cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; font-size: 0.9rem; text-decoration: none; }
+    .instructor-nav-item:hover, .instructor-nav-item.active { color: var(--color-primary); background: rgba(99,102,241,0.08); border-left-color: var(--color-primary); }
+    .instructor-nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .instructor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+    .instructor-header h1 { font-size: 1.6rem; font-weight: 700; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-box { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; }
+    .stat-box__value { font-size: 2rem; font-weight: 700; color: var(--color-primary); }
+    .stat-box__label { font-size: 0.85rem; color: var(--color-text-muted); margin-top: 4px; }
+    .course-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px; transition: box-shadow 0.2s; }
+    .course-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .course-card__thumb { width: 80px; height: 56px; border-radius: 8px; object-fit: cover; background: var(--color-border); flex-shrink: 0; }
+    .course-card__body { flex: 1; min-width: 0; }
+    .course-card__title { font-weight: 600; font-size: 1rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .course-card__meta { font-size: 0.82rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .course-card__actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .status-draft { background: rgba(99,102,241,0.12); color: var(--color-primary); }
+    .status-pending { background: rgba(245,158,11,0.12); color: var(--color-warning); }
+    .status-active { background: rgba(34,197,94,0.12); color: var(--color-success); }
+    .status-rejected { background: rgba(239,68,68,0.12); color: var(--color-error); }
+    .status-inactive { background: var(--color-border); color: var(--color-text-muted); }
+    .rejection-alert { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--color-error); margin-top: 8px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--color-text-muted); }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 16px; }
+    .sidebar-section { padding: 0 24px 8px; font-size: 0.72rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 20px; }
+    @media(max-width:768px) { .instructor-layout { grid-template-columns: 1fr; } .instructor-sidebar { display: none; } }
+  </style>
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__brand">
+        <div class="navbar__brand-icon">🎓</div>
+        <span class="navbar__brand-text">ELearnVN</span>
+        <span style="font-size:0.7rem;background:rgba(99,102,241,0.15);color:var(--color-primary);padding:2px 8px;border-radius:4px;margin-left:4px;font-weight:700">GIẢNG VIÊN</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:12px">
+        <a href="/" class="btn btn-ghost btn-sm">🏠 Trang chủ</a>
+        <button class="btn btn-secondary btn-sm" onclick="app.logout()">🚪 Đăng xuất</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="instructor-layout">
+    <!-- Sidebar -->
+    <aside class="instructor-sidebar">
+      <div class="sidebar-section">Tổng quan</div>
+      <a href="/instructor/courses.html" class="instructor-nav-item active" id="nav-courses">
+        <span class="instructor-nav-icon">📚</span> Khóa học của tôi
+      </a>
+
+      <div class="sidebar-section" style="margin-top:16px">Tài khoản</div>
+      <a href="/profile" class="instructor-nav-item">
+        <span class="instructor-nav-icon">👤</span> Hồ sơ cá nhân
+      </a>
+      <a href="/orders/index.html" class="instructor-nav-item">
+        <span class="instructor-nav-icon">📦</span> Đơn mua của tôi
+      </a>
+      <a href="/learning/index.html" class="instructor-nav-item">
+        <span class="instructor-nav-icon">🎯</span> Học tập
+      </a>
+    </aside>
+
+    <!-- Main -->
+    <main class="instructor-main">
+      <div class="instructor-header">
+        <div>
+          <h1>📚 Khóa học của tôi</h1>
+          <p style="color:var(--color-text-muted);margin-top:4px">Quản lý và xuất bản khóa học của bạn</p>
+        </div>
+        <a href="/instructor/course-editor.html" class="btn btn-primary">
+          + Tạo khóa học mới
+        </a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-grid" id="stats-grid">
+        <div class="stat-box"><div class="stat-box__value" id="stat-total">--</div><div class="stat-box__label">Tổng khóa học</div></div>
+        <div class="stat-box"><div class="stat-box__value" id="stat-active">--</div><div class="stat-box__label">Đang bán</div></div>
+        <div class="stat-box"><div class="stat-box__value" id="stat-pending">--</div><div class="stat-box__label">Chờ duyệt</div></div>
+        <div class="stat-box"><div class="stat-box__value" id="stat-draft">--</div><div class="stat-box__label">Bản nháp</div></div>
+        <div class="stat-box"><div class="stat-box__value" id="stat-enrolled">--</div><div class="stat-box__label">Tổng học viên</div></div>
+      </div>
+
+      <!-- Filter -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+        <button class="btn btn-sm btn-primary filter-btn" data-status="" id="filter-all">Tất cả</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-status="draft">📝 Nháp</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-status="pending_approval">⏳ Chờ duyệt</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-status="active">✅ Đang bán</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-status="rejected">❌ Bị từ chối</button>
+      </div>
+
+      <!-- Course list -->
+      <div id="course-list">
+        <div style="display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--color-text-muted)">
+          <div class="spinner spinner-sm"></div> Đang tải...
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination" style="display:flex;justify-content:center;gap:8px;margin-top:24px"></div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/instructor/courses.js"></script>
+</body>
+</html>

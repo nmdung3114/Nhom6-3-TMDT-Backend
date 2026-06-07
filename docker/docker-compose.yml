@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: elearning_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: elearning
+      MYSQL_USER: elearning
+      MYSQL_PASSWORD: elearning123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "elearning", "-pelearning123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - elearning_net
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: elearning_backend
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env
+    environment:
+      DATABASE_URL: mysql+pymysql://elearning:elearning123@mysql:3306/elearning
+      DB_HOST: mysql
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+      - uploads_data:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - elearning_net
+    command: >
+      sh -c "python init_data.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  nginx:
+    image: nginx:alpine
+    container_name: elearning_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ../frontend:/usr/share/nginx/html
+      - ../nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - elearning_net
+
+volumes:
+  mysql_data:
+  uploads_data:
+
+networks:
+  elearning_net:
+    driver: bridge

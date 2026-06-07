@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán - ELearnVN</title>
+  <link rel="stylesheet" href="/css/base/reset.css">
+  <link rel="stylesheet" href="/css/base/variables.css">
+  <link rel="stylesheet" href="/css/base/base.css">
+  <link rel="stylesheet" href="/css/components/header.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/button.css">
+  <link rel="stylesheet" href="/css/components/card.css">
+  <link rel="stylesheet" href="/css/components/form.css">
+  <link rel="stylesheet" href="/css/components/features.css">
+  <link rel="stylesheet" href="/css/pages/pages-combined.css">
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+  <nav id="navbar" class="navbar"><div class="container navbar__inner" id="navbar-inner"></div></nav>
+
+  <div class="checkout-page page-wrapper">
+    <div class="container" style="padding-top:40px">
+      <!-- Breadcrumb -->
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--color-text-muted);margin-bottom:32px">
+        <a href="/cart/index.html" style="color:var(--color-accent-light)">🛒 Giỏ hàng</a>
+        <span>›</span>
+        <span style="color:var(--color-text-primary);font-weight:600">Thanh toán</span>
+      </div>
+      <h1 style="font-size:1.75rem;font-weight:800;margin-bottom:32px">Xác nhận đơn hàng</h1>
+
+      <!-- Loading -->
+      <div id="loading-state" class="loading-overlay" style="min-height:300px">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- Content -->
+      <div id="checkout-content" class="checkout-layout" style="display:none">
+        <!-- Left: items + payment method -->
+        <div>
+          <!-- Order items -->
+          <div class="checkout-section">
+            <div class="checkout-section__title">Sản phẩm trong đơn hàng</div>
+            <div id="checkout-items" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+
+          <!-- Payment method -->
+          <div class="checkout-section">
+            <div class="checkout-section__title">Phương thức thanh toán</div>
+
+            <!-- VNPay -->
+            <div class="payment-method selected" data-method="vnpay" id="method-vnpay" style="margin-bottom:12px">
+              <img src="https://tse4.mm.bing.net/th/id/OIP.u1wRPAjQKpoCUtuYExMmjwHaCb?pid=Api&P=0&h=220"
+                   onerror="this.style.display='none'"
+                   alt="VNPay" class="payment-method__logo"
+                  style="height:35px;width:auto;object-fit:contain">
+              <div>
+                <div style="font-weight:600">VNPay — Cổng thanh toán sandbox</div>
+                <div style="font-size:0.8rem;color:var(--color-text-secondary)">ATM nội địa • Visa • Mastercard • QR Pay</div>
+                <div style="font-size:0.75rem;color:var(--color-success);margin-top:4px">Môi trường test — không charge tiền thật</div>
+              </div>
+              <div style="margin-left:auto;font-size:1.1rem" class="method-radio">●</div>
+            </div>
+
+            <!-- PayPal -->
+            <div class="payment-method" data-method="paypal" id="method-paypal">
+              <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png"
+                   onerror="this.style.display='none'"
+                   alt="PayPal" class="payment-method__logo"
+                   style="height:28px;width:auto;object-fit:contain">
+              <div>
+                <div style="font-weight:600">PayPal — Sandbox</div>
+                <div style="font-size:0.8rem;color:var(--color-text-secondary)">PayPal Balance • Credit/Debit Card</div>
+                <div style="font-size:0.75rem;color:var(--color-success);margin-top:4px">Môi trường sandbox — thanh toán bằng USD (~26,000đ = $1)</div>
+              </div>
+              <div style="margin-left:auto;font-size:1.1rem" class="method-radio">○</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right: order summary -->
+        <div>
+          <div class="cart-summary" style="position:sticky;top:calc(var(--nav-height) + 24px)">
+            <div class="cart-summary__title">Tóm tắt đơn <span id="co-order-id" style="color:var(--color-accent-light)"></span></div>
+            <div class="cart-summary__row">
+              <span style="color:var(--color-text-secondary)">Tạm tính</span>
+              <span id="co-subtotal" style="font-weight:600"></span>
+            </div>
+            <div class="cart-summary__row">
+              <span style="color:var(--color-text-secondary)">Giảm giá</span>
+              <span id="co-discount" style="color:var(--color-success);font-weight:600"></span>
+            </div>
+            <div class="divider"></div>
+            <div class="cart-summary__row">
+              <span style="font-weight:700;font-size:1rem">Tổng cộng</span>
+              <span id="co-total" class="cart-summary__total"></span>
+            </div>
+            <button id="pay-btn" class="btn btn-primary btn-block btn-xl" style="margin-top:24px">
+              Thanh toán với VNPay
+            </button>
+            <div id="paypal-note" style="display:none;text-align:center;font-size:0.75rem;color:var(--color-text-muted);margin-top:8px">
+              
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" id="site-footer"></footer>
+  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/js/pages/checkout-page.js"></script>
+</body>
+</html>
