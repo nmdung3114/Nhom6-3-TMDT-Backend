@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Optional
 from decimal import Decimal
 from app.core.timezone import now_vn
@@ -55,7 +55,6 @@ def revenue_chart(
     _: User = Depends(require_admin),
 ):
     """Doanh thu theo ngày. Hỗ trợ period=week|month|year hoặc days=N."""
-    from datetime import timedelta
     from calendar import monthrange
     from app.models.order import Payment
 
@@ -404,9 +403,9 @@ def admin_list_orders(
     page_size: int = Query(20, ge=1, le=100),
     status: Optional[str] = None,
     user_id: Optional[int] = None,
-    date: Optional[date] = None,
-    start_date: Optional[date] = None,
-    end_date: Optional[date] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    date: Optional[str] = None,
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
@@ -419,12 +418,25 @@ def admin_list_orders(
         query = query.filter(Order.status == status)
     if user_id:
         query = query.filter(Order.user_id == user_id)
+
+    # Lọc theo ngày
     if date:
-        query = query.filter(func.date(Order.created_at) == date)
-    if start_date:
-        query = query.filter(Order.created_at >= datetime.combine(start_date, datetime.min.time()))
-    if end_date:
-        query = query.filter(Order.created_at <= datetime.combine(end_date, datetime.max.time()))
+        try:
+            dt = datetime.strptime(date, "%Y-%m-%d")
+            query = query.filter(Order.created_at >= dt, Order.created_at < dt + timedelta(days=1))
+        except ValueError: pass
+    else:
+        if start_date:
+            try:
+                sd = datetime.strptime(start_date, "%Y-%m-%d")
+                query = query.filter(Order.created_at >= sd)
+            except ValueError: pass
+        if end_date:
+            try:
+                ed = datetime.strptime(end_date, "%Y-%m-%d")
+                query = query.filter(Order.created_at < ed + timedelta(days=1))
+            except ValueError: pass
+
     total = query.count()
     orders = query.order_by(Order.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
